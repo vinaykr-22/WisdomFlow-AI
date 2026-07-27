@@ -15,5 +15,14 @@ class Settings(BaseSettings):
     stt_model: str = "tiny"
     tts_voice: str = "en-US-AvaNeural"
 
+    # ── Deployment settings ──
+    allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8000"
+    ollama_base_url: str = "http://localhost:11434/v1"
+
+    @property
+    def cors_origins(self) -> list[str]:
+        """Parse comma-separated origins into a list."""
+        return [o.strip() for o in self.allowed_origins.split(",") if o.strip()]
+
 
 settings = Settings()

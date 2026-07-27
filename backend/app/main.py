@@ -1,9 +1,11 @@
 import asyncio
 from contextlib import asynccontextmanager
+from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from sqlalchemy import select
 
 from app.auth import router as auth_router
@@ -17,7 +19,6 @@ from app.api.v1.progress import router as progress_router
 from app.api.v1.revision import router as revision_router
 from app.api.v1.voice import router as voice_router
 from app.api.v1.search import router as search_router
-from pathlib import Path
 
 from app.config import settings
 from app.database import engine, async_session, Base
@@ -64,7 +65,7 @@ app = FastAPI(title="WisdomFlow AI", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:8000"],
+    allow_origins=settings.cors_origins,
     allow_origin_regex=r"chrome-extension://.*",
     allow_credentials=True,
     allow_methods=["*"],
@@ -83,11 +84,37 @@ app.include_router(revision_router)
 app.include_router(voice_router)
 app.include_router(search_router)
 
+# ── Serve uploaded files ──
 UPLOADS = Path(__file__).resolve().parent.parent / settings.upload_dir
 UPLOADS.mkdir(parents=True, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(UPLOADS)), name="uploads")
+
+# ── Serve React SPA (production build) ──
+STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+if STATIC_DIR.exists() and (STATIC_DIR / "index.html").exists():
+    app.mount("/assets", StaticFiles(directory=str(STATIC_DIR / "assets")), name="spa-assets")
 
 
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.api_route("/{full_path:path}", methods=["GET"], include_in_schema=False)
+async def spa_fallback(request: Request, full_path: str):
+    """Serve React SPA for all non-API routes (client-side routing support)."""
+    # Don't intercept API, uploads, docs, or WebSocket paths
+    if full_path.startswith(("api/", "uploads/", "docs", "openapi.json", "health")):
+        from fastapi.responses import JSONResponse
+        return JSONResponse({"detail": "Not Found"}, status_code=404)
+
+    index = STATIC_DIR / "index.html"
+    if index.exists():
+        return FileResponse(str(index))
+
+    # In development (no build), return a helpful message
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        {"detail": "Frontend not built. Run 'npm run build' in frontend/ first, or use the Vite dev server."},
+        status_code=404,
+    )

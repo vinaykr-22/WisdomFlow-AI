@@ -356,15 +356,6 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
 
   /* ───────────────────────── UI ───────────────────────── */
 
-  const stateColor = () => {
-    switch (state) {
-      case 'listening': return 'bg-red-500 shadow-red-200 animate-pulse';
-      case 'thinking': return 'bg-yellow-500 shadow-yellow-200 animate-bounce';
-      case 'speaking': return 'bg-green-500 shadow-green-200';
-      default: return 'bg-blue-600 hover:bg-blue-700 shadow-blue-200';
-    }
-  };
-
   const stateLabel = () => {
     switch (state) {
       case 'idle': return 'Tap the microphone to start a conversation';
@@ -383,72 +374,82 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
   };
 
   return (
-    <div className="w-full h-full max-w-5xl h-[85vh] bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800 relative mx-auto">
+    <div className="w-full max-w-5xl h-full bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800 relative mx-auto">
       
-      {/* Header / Close Button */}
-      <div className="absolute top-6 right-6 z-10 flex gap-4">
-        <div className="bg-slate-100 dark:bg-slate-800/80 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-3">
-          <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-            Context
-          </label>
-          <select
-            className="bg-transparent text-sm font-bold text-slate-700 dark:text-slate-200 outline-none w-32 sm:w-48 truncate cursor-pointer"
-            value={docId}
-            onChange={(e) => setDocId(e.target.value)}
-          >
-            <option value="">General Knowledge</option>
-            {docs.map((d) => <option key={d.id} value={d.id}>{d.title}</option>)}
-          </select>
+      {/* Top Header Bar */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 z-10 flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 animate-pulse" />
+          <h2 className="font-bold text-slate-800 dark:text-slate-100 tracking-wide text-sm sm:text-base">AI Voice Tutor</h2>
         </div>
-        <button 
-          onClick={handleClose} 
-          className="w-10 h-10 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-full flex items-center justify-center transition-colors cursor-pointer"
-        >
-          <X size={20} />
-        </button>
+        
+        <div className="flex items-center gap-3">
+          <div className="bg-slate-100 dark:bg-slate-800/80 px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-2">
+            <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              Context
+            </label>
+            <select
+              className="bg-transparent text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 outline-none w-24 sm:w-40 truncate cursor-pointer"
+              value={docId}
+              onChange={(e) => setDocId(e.target.value)}
+            >
+              <option value="">General Knowledge</option>
+              {docs.map((d) => <option key={d.id} value={d.id}>{d.title}</option>)}
+            </select>
+          </div>
+          <button 
+            onClick={handleClose} 
+            className="w-9 h-9 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+          >
+            <X size={18} />
+          </button>
+        </div>
       </div>
 
-        <div className="flex flex-col lg:flex-row h-full">
-          {/* Main Interaction Area (Left/Top) */}
-          <div className="flex-1 flex flex-col items-center justify-center relative p-8 lg:p-12 bg-slate-50 dark:bg-slate-900/50">
-            <div className="flex-1 w-full flex items-center justify-center transform scale-125 lg:scale-150">
+      {/* Main Content Pane */}
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        {/* Left Pane: Interactive Area */}
+        <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8 bg-slate-50 dark:bg-slate-900/50 overflow-y-auto">
+          <div className="flex-1 w-full flex flex-col items-center justify-center min-h-[300px]">
+            <div className="transform scale-100 sm:scale-110">
               <RadialVisualizer state={state} onClick={handleMicClick} />
             </div>
 
-            <div className="mt-12 flex items-center gap-3 bg-white dark:bg-slate-800 px-6 py-3 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm relative z-10">
-              <div className={`w-3 h-3 rounded-full shadow-sm ${state === 'idle' ? 'bg-slate-300 dark:bg-slate-600' : state === 'listening' ? 'bg-red-500 animate-pulse' : state === 'thinking' ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`} />
-              <p className="text-sm font-bold tracking-wide text-slate-700 dark:text-slate-200 uppercase">{stateLabel()}</p>
-            </div>
-          </div>
-
-          {/* Conversation History (Right/Bottom) */}
-          <div className="w-full lg:w-[400px] h-[40%] lg:h-full border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
-              <MessageSquare size={18} className="text-purple-500" />
-              <h3 className="font-bold text-slate-800 dark:text-slate-100">Live Transcript</h3>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 scroll-smooth scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700">
-              {messages.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500 text-sm font-medium text-center px-4">
-                  Tap the microphone to start learning. Your conversation will appear here.
-                </div>
-              ) : (
-                messages.map((m, i) => (
-                  <div key={i} className={`p-4 rounded-2xl text-sm leading-relaxed shadow-sm ${m.role === 'user' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white ml-8 rounded-tr-sm' : 'bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-800 dark:text-slate-200 mr-8 rounded-tl-sm'}`}>
-                    <span className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ${m.role === 'user' ? 'text-blue-100' : 'text-purple-500 dark:text-purple-400'}`}>
-                      {m.role === 'user' ? 'You' : 'AI Voice Tutor'}
-                    </span>
-                    {m.content}
-                  </div>
-                ))
-              )}
-              <div ref={messagesEndRef} className="h-4" />
+            <div className="mt-8 flex items-center gap-3 bg-white dark:bg-slate-850 px-5 py-2.5 rounded-full border border-slate-200/80 dark:border-slate-700 shadow-sm relative z-10">
+              <div className={`w-2.5 h-2.5 rounded-full shadow-sm ${state === 'idle' ? 'bg-slate-300 dark:bg-slate-650' : state === 'listening' ? 'bg-red-500 animate-pulse' : state === 'thinking' ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`} />
+              <p className="text-xs font-bold tracking-wider text-slate-600 dark:text-slate-300 uppercase">{stateLabel()}</p>
             </div>
           </div>
         </div>
 
-        <audio ref={audioRef} className="hidden" />
+        {/* Right Pane: Live Transcript */}
+        <div className="w-full lg:w-[380px] h-[35%] lg:h-full border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col overflow-hidden">
+          <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 flex-shrink-0">
+            <MessageSquare size={16} className="text-purple-500" />
+            <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100">Live Transcript</h3>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 scroll-smooth scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700">
+            {messages.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs font-semibold text-center px-4 leading-relaxed">
+                Tap the microphone to start learning.<br />Your conversation will appear here.
+              </div>
+            ) : (
+              messages.map((m, i) => (
+                <div key={i} className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm ${m.role === 'user' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white ml-6 rounded-tr-sm' : 'bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-800 dark:text-slate-200 mr-6 rounded-tl-sm'}`}>
+                  <span className={`block text-[9px] font-bold uppercase tracking-wider mb-1 ${m.role === 'user' ? 'text-blue-100' : 'text-purple-500 dark:text-purple-400'}`}>
+                    {m.role === 'user' ? 'You' : 'AI Voice Tutor'}
+                  </span>
+                  {m.content}
+                </div>
+              ))
+            )}
+            <div ref={messagesEndRef} className="h-4" />
+          </div>
+        </div>
       </div>
+
+      <audio ref={audioRef} className="hidden" />
+    </div>
   );
 }

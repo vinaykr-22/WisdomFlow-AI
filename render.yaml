@@ -1,0 +1,38 @@
+# ── WisdomFlow AI — Render Blueprint ──
+# Deploy with: https://render.com/deploy
+
+services:
+  - type: web
+    name: wisdomflow-ai
+    runtime: python
+    buildCommand: |
+      pip install -r backend/requirements.txt
+      cd frontend && npm ci && npm run build
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:////data/learnflow.db
+      - key: LLM_API_KEY
+        sync: false  # Set manually in Render dashboard
+      - key: LLM_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: LLM_MODEL
+        value: llama-3.3-70b-versatile
+      - key: UPLOAD_DIR
+        value: /data/uploads
+      - key: STT_MODEL
+        value: tiny
+      - key: TTS_VOICE
+        value: en-US-AvaNeural
+      - key: ALLOWED_ORIGINS
+        value: https://wisdomflow-ai.onrender.com
+      - key: PYTHON_VERSION
+        value: "3.13"
+      - key: NODE_VERSION
+        value: "20"

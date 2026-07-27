@@ -1,4 +1,4 @@
-import React from 'react';
+
 
 type State = 'idle' | 'listening' | 'thinking' | 'speaking';
 

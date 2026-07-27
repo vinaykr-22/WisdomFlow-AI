@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any
 
-import pypdf
+import fitz
 from docx import Document as DocxDocument
 from docx.opc.constants import RELATIONSHIP_TYPE as RT
 
@@ -12,10 +12,12 @@ def extract_text(file_path: str) -> str:
 
     if ext == ".pdf":
         text = ""
-        with open(file_path, "rb") as f:
-            reader = pypdf.PdfReader(f)
-            for page in reader.pages:
-                text += page.extract_text() or ""
+        try:
+            with fitz.open(file_path) as doc:
+                for page in doc:
+                    text += page.get_text() + "\n"
+        except Exception:
+            pass
         return text
 
     if ext == ".docx":
@@ -41,16 +43,24 @@ def extract_images(file_path: str) -> list[dict[str, Any]]:
     images: list[dict[str, Any]] = []
 
     if ext == ".pdf":
-        with open(file_path, "rb") as f:
-            reader = pypdf.PdfReader(f)
-            for i, page in enumerate(reader.pages):
-                for img in page.images:
-                    images.append({
-                        "name": img.name or f"page_{i + 1}_{len(images)}.png",
-                        "data": img.data,
-                        "content_type": "image/png",
-                        "page": i + 1,
-                    })
+        try:
+            with fitz.open(file_path) as doc:
+                for i in range(len(doc)):
+                    page = doc[i]
+                    image_list = page.get_images(full=True)
+                    for img_index, img in enumerate(image_list):
+                        xref = img[0]
+                        base_image = doc.extract_image(xref)
+                        image_bytes = base_image["image"]
+                        image_ext = base_image["ext"]
+                        images.append({
+                            "name": f"page_{i + 1}_{img_index + 1}.{image_ext}",
+                            "data": image_bytes,
+                            "content_type": f"image/{image_ext}",
+                            "page": i + 1,
+                        })
+        except Exception:
+            pass
 
     elif ext == ".docx":
         doc = DocxDocument(file_path)

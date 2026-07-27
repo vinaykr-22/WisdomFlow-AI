@@ -63,7 +63,26 @@ export default function Documents() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleOpen = async (doc: Doc) => {
+    try {
+      const response = await api.get(`/documents/${doc.id}/content`, {
+        responseType: 'blob'
+      });
+      
+      const fileType = response.headers['content-type'] || response.data.type;
+      const blob = new Blob([response.data], { type: fileType });
+      const url = window.URL.createObjectURL(blob);
+      
+      window.open(url, '_blank');
+      
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+    } catch (e: any) {
+      alert('Could not open document.');
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
     if (!confirm('Are you sure you want to delete this document?')) return;
     await api.delete(`/documents/${id}`);
     setDocs((prev) => prev.filter((d) => d.id !== id));
@@ -138,13 +157,17 @@ export default function Documents() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {docs.map((doc) => (
-              <div key={doc.id} className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5 shadow-sm hover:shadow-md hover:border-slate-200 dark:hover:border-slate-700 transition-all duration-200">
+              <div 
+                key={doc.id} 
+                onClick={() => handleOpen(doc)}
+                className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5 shadow-sm hover:shadow-md hover:border-blue-200 dark:hover:border-blue-700 transition-all duration-200 cursor-pointer"
+              >
                 <div className="flex items-start justify-between mb-4">
                   <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
                     {getFileIcon(doc.file_type)}
                   </div>
                   <button 
-                    onClick={() => handleDelete(doc.id)} 
+                    onClick={(e) => handleDelete(e, doc.id)} 
                     className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg opacity-0 group-hover:opacity-100 transition-all focus:opacity-100 cursor-pointer"
                     title="Delete document"
                   >
