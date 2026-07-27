@@ -3,6 +3,8 @@ import { useEffect } from 'react';
 import { useThemeStore } from './stores/theme';
 import Login from './routes/Login';
 import Register from './routes/Register';
+import ForgotPassword from './routes/ForgotPassword';
+import ResetPassword from './routes/ResetPassword';
 import ProtectedRoute from './routes/ProtectedRoute';
 import Dashboard from './routes/Dashboard';
 import Documents from './routes/Documents';
@@ -32,6 +34,8 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/documents" element={<Documents />} />

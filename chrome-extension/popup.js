@@ -17,8 +17,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const themeToggle = document.getElementById('themeToggle');
   const moonIcon = document.getElementById('moonIcon');
   const sunIcon = document.getElementById('sunIcon');
-  
-  chrome.storage.local.get(['theme'], function(result) {
+
+  chrome.storage.local.get(['theme'], function (result) {
     if (result.theme === 'dark') {
       document.body.classList.add('dark');
       moonIcon.style.display = 'none';
@@ -29,10 +29,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   themeToggle.addEventListener('click', () => {
     document.body.classList.toggle('dark');
     const isDark = document.body.classList.contains('dark');
-    
+
     moonIcon.style.display = isDark ? 'none' : 'block';
     sunIcon.style.display = isDark ? 'block' : 'none';
-    
+
     chrome.storage.local.set({ theme: isDark ? 'dark' : 'light' });
   });
 });
@@ -41,7 +41,7 @@ async function handleLogin() {
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
   const btn = document.getElementById('loginBtn');
-  
+
   if (!email || !password) {
     showStatus('Please enter email and password.', 'error');
     return;
@@ -58,10 +58,10 @@ async function handleLogin() {
     });
 
     if (!res.ok) throw new Error('Invalid credentials');
-    
+
     const data = await res.json();
     await chrome.storage.local.set({ token: data.access_token });
-    
+
     showStatus('Logged in successfully!', 'success');
     showClipSection();
     prefillTitle();
@@ -79,13 +79,13 @@ async function handleClip() {
 
   const btn = document.getElementById('clipBtn');
   const docTitle = document.getElementById('docTitle').value || 'Clipped Web Page';
-  
+
   btn.disabled = true;
   btn.textContent = 'Extracting...';
 
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    
+
     const [{ result }] = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       function: extractPageText,
@@ -109,7 +109,7 @@ async function handleClip() {
     });
 
     if (!res.ok) throw new Error('Upload failed');
-    
+
     showStatus('Successfully clipped to WisdomFlow!', 'success');
   } catch (err) {
     showStatus(err.message, 'error');
@@ -128,12 +128,12 @@ async function handleLogout() {
 function extractPageText() {
   // Try to grab main content, fallback to body text
   const main = document.querySelector('main') || document.querySelector('article') || document.body;
-  
+
   // Remove unwanted elements
   const clone = main.cloneNode(true);
   const unwanted = clone.querySelectorAll('script, style, nav, header, footer, iframe');
   unwanted.forEach(el => el.remove());
-  
+
   return clone.innerText || clone.textContent;
 }
 
