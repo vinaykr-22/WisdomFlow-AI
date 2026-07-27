@@ -54,12 +54,19 @@ async def _reindex_stale_docs():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    # Run reindexing in background so server binds to PORT immediately
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    except Exception as e:
+        print(f"Warning: Database initialization error: {e}")
+
     asyncio.create_task(_reindex_stale_docs())
     yield
-    await engine.dispose()
+    try:
+        await engine.dispose()
+    except Exception:
+        pass
+
 
 
 
