@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const api = axios.create({ baseURL: '/api/v1' });
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
+const api = axios.create({ baseURL: API_BASE_URL });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token');
@@ -23,7 +24,7 @@ api.interceptors.response.use(
       const refresh = localStorage.getItem('refresh_token');
       if (refresh) {
         try {
-          const { data } = await axios.post('/api/v1/auth/refresh', { refresh_token: refresh });
+          const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, { refresh_token: refresh });
           localStorage.setItem('access_token', data.access_token);
           original.headers.Authorization = `Bearer ${data.access_token}`;
           return api(original);
