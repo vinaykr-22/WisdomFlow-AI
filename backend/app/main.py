@@ -56,9 +56,11 @@ async def _reindex_stale_docs():
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    await _reindex_stale_docs()
+    # Run reindexing in background so server binds to PORT immediately
+    asyncio.create_task(_reindex_stale_docs())
     yield
     await engine.dispose()
+
 
 
 app = FastAPI(title="WisdomFlow AI", version="0.1.0", lifespan=lifespan)
