@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import api from '../api/client';
+import api, { getMediaUrl } from '../api/client';
 import { FileText, Type, Zap, Image as ImageIcon, Sparkles, Loader2, Headphones } from 'lucide-react';
 
 interface Doc { id: string; title: string }
@@ -52,7 +52,7 @@ export default function Summarizer() {
     setError('');
     try {
       const { data } = await api.post('/summarize/podcast', { document_id: selectedId });
-      setPodcastUrl(data.audio_url);
+      setPodcastUrl(getMediaUrl(data.audio_url));
       setPodcastScript(data.script);
     } catch {
       setError('Error generating podcast. Please try again.');
@@ -175,7 +175,7 @@ export default function Summarizer() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {images.map((url, i) => (
                   <div key={i} className="group rounded-2xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
-                    <img src={url} alt={`Document extract ${i + 1}`} className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                    <img src={getMediaUrl(url)} alt={`Document extract ${i + 1}`} className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                   </div>
                 ))}
               </div>

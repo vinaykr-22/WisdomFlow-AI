@@ -65,4 +65,19 @@ export const getMediaUrl = (url?: string | null): string => {
   return url;
 };
 
+export const getWsUrl = (path: string): string => {
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  if (API_BASE_URL.startsWith('http')) {
+    try {
+      const parsed = new URL(API_BASE_URL);
+      const wsProtocol = parsed.protocol === 'https:' ? 'wss:' : 'ws:';
+      return `${wsProtocol}//${parsed.host}${cleanPath}`;
+    } catch {
+      /* fallback below */
+    }
+  }
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${window.location.host}${cleanPath}`;
+};
+
 export default api;

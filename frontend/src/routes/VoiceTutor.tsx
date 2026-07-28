@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api/client';
+import api, { getWsUrl } from '../api/client';
 import { useAuthStore } from '../stores/auth';
 import RadialVisualizer from './RadialVisualizer';
 import { X, MessageSquare } from 'lucide-react';
@@ -65,10 +65,9 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
     }
     const token = useAuthStore.getState().accessToken;
     if (!token) return null;
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const docParam = docId ? `&document_id=${encodeURIComponent(docId)}` : '';
     const ws = new WebSocket(
-      `${protocol}//${window.location.host}/api/v1/voice/ws?token=${token}${docParam}`,
+      getWsUrl(`/api/v1/voice/ws?token=${token}${docParam}`),
     );
     ws.binaryType = 'arraybuffer';
     wsRef.current = ws;
