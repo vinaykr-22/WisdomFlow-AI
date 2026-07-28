@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import api, { getMediaUrl } from '../api/client';
+import { useAuthStore } from '../stores/auth';
 import { Send, FileText, Bot, User, X, ChevronDown } from 'lucide-react';
 
 interface Doc {
@@ -51,17 +52,48 @@ export default function Chat() {
       document_ids: selectedDocIds,
     });
 
-    try {
-      const res = await fetch(getMediaUrl('/api/v1/chat'), {
+    const sendRequest = (token: string) => {
+      return fetch(getMediaUrl('/api/v1/chat'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('access_token') || ''}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body,
       });
+    };
 
-      if (!res.ok) throw new Error('Request failed');
+    try {
+      let token = localStorage.getItem('access_token') || '';
+      let res = await sendRequest(token);
+
+      if (res.status === 401) {
+        const refresh = localStorage.getItem('refresh_token');
+        if (refresh) {
+          try {
+            const { data } = await api.post('/auth/refresh', { refresh_token: refresh });
+            token = data.access_token;
+            useAuthStore.getState().setTokens(token, refresh);
+            res = await sendRequest(token);
+          } catch {
+            useAuthStore.getState().logout();
+            setStreaming(false);
+            return;
+          }
+        } else {
+          useAuthStore.getState().logout();
+          setStreaming(false);
+          return;
+        }
+      }
+
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
 
       const reader = res.body?.getReader();
-      if (!reader) return;
+      if (!reader) {
+        setStreaming(false);
+        return;
+      }
 
       const decoder = new TextDecoder();
       let assistantMsg: Msg = { role: 'assistant', content: '' };
