@@ -1,18 +1,13 @@
 from pathlib import Path
 
-import chromadb
-from chromadb.config import Settings
-
-from app.config import settings
-
-_chroma_path = Path(settings.upload_dir).parent / "chroma_db"
-
-
-def _get_client() -> chromadb.ClientAPI:
+def _get_client():
+    import chromadb
+    from chromadb.config import Settings
     return chromadb.PersistentClient(path=str(_chroma_path), settings=Settings(anonymized_telemetry=False))
 
 
 def _get_or_create_collection(name: str):
+    import chromadb
     client = _get_client()
     try:
         return client.get_collection(name)

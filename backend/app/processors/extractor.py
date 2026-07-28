@@ -1,16 +1,12 @@
 from pathlib import Path
 from typing import Any
 
-import fitz
-from docx import Document as DocxDocument
-from docx.opc.constants import RELATIONSHIP_TYPE as RT
-
-
 def extract_text(file_path: str) -> str:
     path = Path(file_path)
     ext = path.suffix.lower()
 
     if ext == ".pdf":
+        import fitz
         text = ""
         try:
             with fitz.open(file_path) as doc:
@@ -21,6 +17,7 @@ def extract_text(file_path: str) -> str:
         return text
 
     if ext == ".docx":
+        from docx import Document as DocxDocument
         doc = DocxDocument(file_path)
         return "\n".join(p.text for p in doc.paragraphs)
 
@@ -43,6 +40,7 @@ def extract_images(file_path: str) -> list[dict[str, Any]]:
     images: list[dict[str, Any]] = []
 
     if ext == ".pdf":
+        import fitz
         try:
             with fitz.open(file_path) as doc:
                 for i in range(len(doc)):
@@ -63,6 +61,7 @@ def extract_images(file_path: str) -> list[dict[str, Any]]:
             pass
 
     elif ext == ".docx":
+        from docx import Document as DocxDocument
         doc = DocxDocument(file_path)
         for rel in doc.part.rels.values():
             if "image" in rel.reltype and hasattr(rel, "target_part") and rel.target_part:

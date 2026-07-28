@@ -1,12 +1,8 @@
 from functools import lru_cache
 
-from faster_whisper import WhisperModel
-
-from app.config import settings
-
-
 @lru_cache(maxsize=1)
-def _get_model() -> WhisperModel:
+def _get_model():
+    from faster_whisper import WhisperModel
     return WhisperModel(settings.stt_model, device="cpu", compute_type="int8")
 
 
