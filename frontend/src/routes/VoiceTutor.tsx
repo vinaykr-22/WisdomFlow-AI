@@ -42,6 +42,7 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
   const responseCompleteRef = useRef(false);
   const listeningTimeoutRef = useRef<number | null>(null);
   const thinkingTimeoutRef = useRef<number | null>(null);
+  const stopRecordingRef = useRef<(() => void) | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -173,6 +174,7 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
 
       /* ── Shared stop helper (silence detector + timeout both call this) ── */
       const stopRecording = () => {
+        stopRecordingRef.current = null;
         if (!recorderRef.current) return;
         if (listeningTimeoutRef.current) {
           clearTimeout(listeningTimeoutRef.current);
@@ -204,6 +206,8 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
         thinkingTimeoutRef.current = window.setTimeout(stopSession, THINKING_TIMEOUT_MS);
       };
 
+      stopRecordingRef.current = stopRecording;
+
       let silenceStart = 0;
       hadSpeechRef.current = false;
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
@@ -223,13 +227,12 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
         frameCount++;
         if (frameCount % 60 === 0) console.log('rms:', rms.toFixed(4), 'hadSpeech:', hadSpeechRef.current);
 
-        if (rms >= 0.005) {
+        if (rms >= 0.002) {
           silenceStart = 0;
           hadSpeechRef.current = true;
         } else {
           if (silenceStart === 0) silenceStart = Date.now();
           else if (
-            hadSpeechRef.current &&
             Date.now() - silenceStart > SILENCE_THRESHOLD_MS
           ) {
             stopRecording();
@@ -279,6 +282,12 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
   /* ───────────────────────── Mic button handler ───────────────────────── */
 
   const handleMicClick = useCallback(async () => {
+    if (stateRef.current === 'listening') {
+      if (stopRecordingRef.current) {
+        stopRecordingRef.current();
+        return;
+      }
+    }
     if (stateRef.current !== 'idle') {
       stopSession();
       return;
