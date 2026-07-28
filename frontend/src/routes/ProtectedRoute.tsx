@@ -5,7 +5,7 @@ import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
 import { 
   LayoutDashboard, FileText, AlignLeft, MessageSquare, 
-  HelpCircle, Layers, Map, TrendingUp, BookOpen, Search, LogOut, BrainCircuit, Mic, X, UserCircle, Moon, Sun
+  HelpCircle, Layers, Map, TrendingUp, BookOpen, Search, LogOut, BrainCircuit, Mic, UserCircle, Moon, Sun
 } from 'lucide-react';
 import VoiceTutor from './VoiceTutor';
 import ProfileModal from './ProfileModal';

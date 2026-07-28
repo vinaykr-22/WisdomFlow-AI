@@ -356,15 +356,6 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
 
   /* ───────────────────────── UI ───────────────────────── */
 
-  const stateColor = () => {
-    switch (state) {
-      case 'listening': return 'bg-red-500 shadow-red-200 animate-pulse';
-      case 'thinking': return 'bg-yellow-500 shadow-yellow-200 animate-bounce';
-      case 'speaking': return 'bg-green-500 shadow-green-200';
-      default: return 'bg-blue-600 hover:bg-blue-700 shadow-blue-200';
-    }
-  };
-
   const stateLabel = () => {
     switch (state) {
       case 'idle': return 'Tap the microphone to start a conversation';
