@@ -163,7 +163,7 @@ async def upload_profile_photo(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    uploads_dir = Path(settings.upload_dir)
+    uploads_dir = Path(__file__).resolve().parent.parent / settings.upload_dir
     uploads_dir.mkdir(parents=True, exist_ok=True)
     
     file_ext = file.filename.split(".")[-1]
