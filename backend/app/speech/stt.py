@@ -7,11 +7,16 @@ def _get_model():
 
 
 def speech_to_text(audio_path: str) -> str:
-    model = _get_model()
-    segments, _ = model.transcribe(
-        audio_path,
-        beam_size=1,
-        vad_filter=True,
-        language="en",
-    )
-    return " ".join(seg.text.strip() for seg in segments)
+    try:
+        from app.config import settings
+        model = _get_model()
+        segments, _ = model.transcribe(
+            audio_path,
+            beam_size=1,
+            vad_filter=False,
+            language="en",
+        )
+        return " ".join(seg.text.strip() for seg in segments)
+    except Exception as e:
+        print(f"STT Exception: {e}")
+        return ""

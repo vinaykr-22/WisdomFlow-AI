@@ -171,8 +171,13 @@ async def voice_ws(websocket: WebSocket):
             audio_path = VOICE_DIR / f"input_{uuid.uuid4()}.webm"
             audio_path.write_bytes(audio_data)
 
-            transcript = await asyncio.to_thread(speech_to_text, str(audio_path))
-            audio_path.unlink(missing_ok=True)
+            try:
+                transcript = await asyncio.to_thread(speech_to_text, str(audio_path))
+            except Exception as e:
+                print(f"STT processing error: {e}")
+                transcript = ""
+            finally:
+                audio_path.unlink(missing_ok=True)
 
             if not transcript.strip():
                 await websocket.send_json({"type": "error", "message": "No speech detected"})

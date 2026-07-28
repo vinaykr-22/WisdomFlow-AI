@@ -335,7 +335,17 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
               break;
             case 'error':
               console.error('WS error:', msg.message);
-              stopSession();
+              if (thinkingTimeoutRef.current) {
+                clearTimeout(thinkingTimeoutRef.current);
+                thinkingTimeoutRef.current = null;
+              }
+              if (msg.message === 'Invalid token') {
+                useAuthStore.getState().logout();
+                stopSession();
+              } else {
+                setMessages(prev => [...prev, { role: 'assistant', content: msg.message || 'No speech detected. Please try speaking again.' }]);
+                startListening();
+              }
               break;
           }
         } else {
