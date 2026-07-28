@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import api from '../api/client';
+import api, { getMediaUrl } from '../api/client';
 import { Send, FileText, Bot, User, X, ChevronDown } from 'lucide-react';
 
 interface Doc {
@@ -52,9 +52,9 @@ export default function Chat() {
     });
 
     try {
-      const res = await fetch('/api/v1/chat', {
+      const res = await fetch(getMediaUrl('/api/v1/chat'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('access_token')}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('access_token') || ''}` },
         body,
       });
 
