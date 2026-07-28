@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import api from '../api/client';
+import api, { getMediaUrl } from '../api/client';
 import { useAuthStore } from '../stores/auth';
 import { User, Mail, ShieldCheck, Lock, Loader2, CheckCircle2, XCircle, Camera, GraduationCap, FileText, Layers, HelpCircle, Activity } from 'lucide-react';
 
@@ -152,7 +152,7 @@ export default function ProfileModal({ isOpen, onClose }: { isOpen: boolean; onC
               <div className="flex flex-col items-center gap-4">
                 <div className="relative group">
                   {profile.profile_photo_url ? (
-                    <img src={`http://localhost:8000${profile.profile_photo_url}`} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-lg" />
+                    <img src={getMediaUrl(profile.profile_photo_url)} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-lg" />
                   ) : (
                     <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-3xl font-bold border-4 border-white dark:border-slate-800 shadow-lg">
                       {profile.full_name.charAt(0).toUpperCase()}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navigate, Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import api from '../api/client';
+import api, { getMediaUrl } from '../api/client';
 import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
 import { 
@@ -165,7 +165,7 @@ export default function ProtectedRoute() {
               title="My Profile"
             >
               {user?.profile_photo_url ? (
-                <img src={`http://localhost:8000${user.profile_photo_url}`} alt="Profile" className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-600" />
+                <img src={getMediaUrl(user.profile_photo_url)} alt="Profile" className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-600" />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm">
                   {user?.full_name ? user.full_name.charAt(0).toUpperCase() : <UserCircle size={20} />}
@@ -202,7 +202,7 @@ export default function ProtectedRoute() {
 
         {/* Voice Tutor Modal */}
         <div className={`fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md z-50 transition-all duration-300 flex items-center justify-center p-4 sm:p-6 ${isVoiceTutorOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-          <div className={`w-full max-w-5xl h-[85vh] transition-all duration-300 transform ${isVoiceTutorOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
+          <div className={`w-full max-w-5xl h-[85vh] max-h-[750px] my-auto transition-all duration-300 transform ${isVoiceTutorOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
             {isVoiceTutorOpen && <VoiceTutor onClose={() => setIsVoiceTutorOpen(false)} />}
           </div>
         </div>
