@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '../stores/auth';
 
 export const getBaseUrl = (): string => {
   const envUrl = import.meta.env.VITE_API_URL;
@@ -63,14 +64,12 @@ api.interceptors.response.use(
         try {
           const baseUrl = getBaseUrl();
           const { data } = await axios.post(`${baseUrl}/auth/refresh`, { refresh_token: refresh });
-          localStorage.setItem('access_token', data.access_token);
+          useAuthStore.getState().setTokens(data.access_token, refresh);
           original.headers.Authorization = `Bearer ${data.access_token}`;
           return api(original);
         } catch { /* refresh failed */ }
       }
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      window.location.href = '/login';
+      useAuthStore.getState().logout();
     }
     return Promise.reject(err);
   },
