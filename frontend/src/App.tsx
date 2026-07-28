@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { useThemeStore } from './stores/theme';
 import Login from './routes/Login';
 import Register from './routes/Register';
@@ -31,6 +32,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <Analytics />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
