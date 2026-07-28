@@ -31,7 +31,7 @@ services:
       - key: TTS_VOICE
         value: en-US-AvaNeural
       - key: ALLOWED_ORIGINS
-        value: https://wisdomflow-ai.onrender.com
+        value: https://wisdomflow-ai.onrender.com,https://wisdomflow-ai.vercel.app
       - key: PYTHON_VERSION
         value: "3.13"
       - key: NODE_VERSION

@@ -72,10 +72,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="WisdomFlow AI", version="0.1.0", lifespan=lifespan)
 
+origins = list(settings.cors_origins)
+if "https://wisdomflow-ai.vercel.app" not in origins:
+    origins.append("https://wisdomflow-ai.vercel.app")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
-    allow_origin_regex=r"chrome-extension://.*",
+    allow_origins=origins if "*" not in settings.cors_origins else ["*"],
+    allow_origin_regex=r"https://.*\.vercel\.app|https://.*\.onrender\.com|chrome-extension://.*|http://localhost:.*|http://127\.0\.0\.1:.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -109,7 +113,7 @@ async def health():
     return {"status": "ok"}
 
 
-@app.api_route("/{full_path:path}", methods=["GET"], include_in_schema=False)
+@app.get("/{full_path:path}", include_in_schema=False)
 async def spa_fallback(request: Request, full_path: str):
     """Serve React SPA for all non-API routes (client-side routing support)."""
     # Don't intercept API, uploads, docs, or WebSocket paths
