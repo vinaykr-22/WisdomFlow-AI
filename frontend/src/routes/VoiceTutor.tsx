@@ -11,7 +11,7 @@ interface Doc { id: string; title: string; }
 interface ChatMsg { role: 'user' | 'assistant'; content: string; }
 
 /* ── Silence detection threshold in ms ── */
-const SILENCE_THRESHOLD_MS = 800;
+const SILENCE_THRESHOLD_MS = 1500;
 /* ── Max listening duration before forced send ── */
 const LISTENING_TIMEOUT_MS = 10_000;
 /* ── Max waiting for backend after audio sent ── */
@@ -223,7 +223,7 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
         frameCount++;
         if (frameCount % 60 === 0) console.log('rms:', rms.toFixed(4), 'hadSpeech:', hadSpeechRef.current);
 
-        if (rms >= 0.01) {
+        if (rms >= 0.005) {
           silenceStart = 0;
           hadSpeechRef.current = true;
         } else {
