@@ -59,11 +59,21 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
 
   /* ───────────────────────── WebSocket helpers ───────────────────────── */
 
-  const ensureWs = useCallback((): WebSocket | null => {
+  const ensureWs = useCallback(async (): Promise<WebSocket | null> => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       return wsRef.current;
     }
-    const token = useAuthStore.getState().accessToken;
+    let token = useAuthStore.getState().accessToken || localStorage.getItem('access_token');
+    const refresh = localStorage.getItem('refresh_token');
+    if (refresh) {
+      try {
+        const { data } = await api.post('/auth/refresh', { refresh_token: refresh });
+        token = data.access_token;
+        if (token) useAuthStore.getState().setTokens(token, refresh);
+      } catch {
+        /* fallback */
+      }
+    }
     if (!token) return null;
     const docParam = docId ? `&document_id=${encodeURIComponent(docId)}` : '';
     const ws = new WebSocket(
@@ -268,7 +278,7 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
 
   /* ───────────────────────── Mic button handler ───────────────────────── */
 
-  const handleMicClick = useCallback(() => {
+  const handleMicClick = useCallback(async () => {
     if (stateRef.current !== 'idle') {
       stopSession();
       return;
@@ -278,7 +288,7 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
     setMessages([]);
 
     /* Ensure WS is open (may reconnect if previous was closed) */
-    const ws = ensureWs();
+    const ws = await ensureWs();
     if (!ws) {
       alert('Not authenticated');
       return;
