@@ -49,4 +49,20 @@ api.interceptors.response.use(
   },
 );
 
+export const getMediaUrl = (url?: string | null): string => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  
+  if (API_BASE_URL.startsWith('http')) {
+    try {
+      const parsed = new URL(API_BASE_URL);
+      const cleanPath = url.startsWith('/') ? url : `/${url}`;
+      return `${parsed.origin}${cleanPath}`;
+    } catch {
+      return url;
+    }
+  }
+  return url;
+};
+
 export default api;
