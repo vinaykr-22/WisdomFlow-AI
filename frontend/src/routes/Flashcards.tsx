@@ -26,7 +26,9 @@ export default function Flashcards() {
       const { data: setData } = await api.get(`/flashcards/sets/${data.id}`);
       setCards(setData.cards);
       setTitle(setData.title);
-    } catch { alert('Failed to generate flashcards'); }
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Failed to generate flashcards');
+    }
     setLoading(false);
   };
 

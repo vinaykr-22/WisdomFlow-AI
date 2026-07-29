@@ -57,7 +57,14 @@ async function handleLogin() {
       body: JSON.stringify({ email, password })
     });
 
-    if (!res.ok) throw new Error('Invalid credentials');
+    if (!res.ok) {
+      let msg = 'Invalid credentials';
+      try {
+        const data = await res.json();
+        if (data.detail) msg = typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail);
+      } catch (_) {}
+      throw new Error(msg);
+    }
     
     const data = await res.json();
     await chrome.storage.local.set({ token: data.access_token });
@@ -78,7 +85,8 @@ async function handleClip() {
   if (!token) return showAuthSection();
 
   const btn = document.getElementById('clipBtn');
-  const docTitle = document.getElementById('docTitle').value || 'Clipped Web Page';
+  const rawTitle = document.getElementById('docTitle').value || 'Clipped Web Page';
+  const docTitle = rawTitle.replace(/[/\\?%*:|"<>]/g, '_').trim() || 'Clipped Web Page';
   
   btn.disabled = true;
   btn.textContent = 'Extracting...';
@@ -100,7 +108,6 @@ async function handleClip() {
     const file = new File([result], `${docTitle}.txt`, { type: 'text/plain' });
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('title', docTitle);
 
     const res = await fetch(`${API_URL}/documents/upload`, {
       method: 'POST',
@@ -108,7 +115,22 @@ async function handleClip() {
       body: formData
     });
 
-    if (!res.ok) throw new Error('Upload failed');
+    if (!res.ok) {
+      let errorMsg = `Upload failed (${res.status})`;
+      try {
+        const errData = await res.json();
+        if (errData.detail) {
+          errorMsg = typeof errData.detail === 'string' ? errData.detail : JSON.stringify(errData.detail);
+        }
+      } catch (_) {}
+
+      if (res.status === 401) {
+        await chrome.storage.local.remove('token');
+        showAuthSection();
+        errorMsg = 'Session expired. Please log in again.';
+      }
+      throw new Error(errorMsg);
+    }
     
     showStatus('Successfully clipped to WisdomFlow!', 'success');
   } catch (err) {

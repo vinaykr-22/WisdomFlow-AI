@@ -75,8 +75,8 @@ export default function RoadmapPage() {
       setRoadmap(detail);
       setView('detail');
       loadList();
-    } catch {
-      alert('Failed to generate roadmap');
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Failed to generate roadmap');
     }
     setLoading(false);
   };

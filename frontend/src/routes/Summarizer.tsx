@@ -38,8 +38,8 @@ export default function Summarizer() {
       const { data } = await api.post('/summarize', { document_id: selectedId, page_count: pageCount });
       setSummary(data.content);
       setImages(data.images || []);
-    } catch {
-      setError('Error generating summary. Check your API key and try again.');
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Error generating summary. Please try again.');
     }
     setLoading(false);
   };
@@ -54,8 +54,8 @@ export default function Summarizer() {
       const { data } = await api.post('/summarize/podcast', { document_id: selectedId });
       setPodcastUrl(data.audio_url);
       setPodcastScript(data.script);
-    } catch {
-      setError('Error generating podcast. Please try again.');
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Error generating podcast. Please try again.');
     }
     setLoadingPodcast(false);
   };

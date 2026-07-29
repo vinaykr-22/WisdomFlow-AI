@@ -12,7 +12,7 @@ from app.database import get_db
 from app.dependencies import get_current_user
 from app.models import User, Document
 from app.processors.chunker import chunk_text
-from app.processors.extractor import extract_text
+from app.processors.extractor import extract_text, resolve_file_path
 from app.config import settings
 from app.api.v1.progress import record_activity
 
@@ -126,7 +126,10 @@ async def delete_document(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    Path(doc.file_path).unlink(missing_ok=True)
+    try:
+        resolve_file_path(doc.file_path).unlink(missing_ok=True)
+    except HTTPException:
+        pass
     vs_delete(str(doc_id))
     await db.execute(delete(Document).where(Document.id == doc_id))
     await db.commit()

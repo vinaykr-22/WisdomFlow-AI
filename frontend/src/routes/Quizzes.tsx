@@ -35,7 +35,9 @@ export default function Quizzes() {
       setQuizId(data.id);
       const { data: quizData } = await api.get(`/quizzes/${data.id}`);
       setQuestions(quizData.questions);
-    } catch { alert('Failed to generate quiz'); }
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Failed to generate quiz');
+    }
     setLoading(false);
   };
 
@@ -45,7 +47,9 @@ export default function Quizzes() {
       const { data } = await api.post(`/quizzes/${quizId}/submit`, { answers });
       setScore(data.score);
       setResults(data.results);
-    } catch { alert('Failed to submit quiz'); }
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Failed to submit quiz');
+    }
   };
 
   const allAnswered = questions.every((q) => answers[q.id]);
