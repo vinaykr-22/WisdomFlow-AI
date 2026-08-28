@@ -1,8 +1,12 @@
 # WisdomFlow AI
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-61.9%25-blue)](https://www.typescriptlang.org/) [![Python](https://img.shields.io/badge/Python-33.3%25-yellowgreen)](https://www.python.org/) [![License](https://img.shields.io/badge/License-MIT-lightgrey)](./LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-61.9%25-blue)](https://www.typescriptlang.org/) [![Python](https://img.shields.io/badge/Python-33.3%25-yellowgreen)](https://www.python.org/) [![License](https://img.shields.io/badge/License-MIT-lightgrey)](./LICENSE) [![CI](https://github.com/vinaykr-22/WisdomFlow-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/vinaykr-22/WisdomFlow-AI/actions)
 
 A learning-first AI platform that helps users convert documents into an interactive study experience — chat with your content, create summaries, quizzes, flashcards, and practice with a voice tutor. Built as a full-stack web app with a TypeScript React frontend and a Python FastAPI backend that integrates LLMs, embeddings, and speech tools.
+
+## Live demo
+- Frontend (Vercel): https://wisdomflow-ai.vercel.app
+- Backend (Render): (update this README with your Render backend URL)
 
 ## Key features
 - Upload and ingest documents (PDF, DOCX, PPTX, text)
@@ -87,7 +91,7 @@ pip install -r requirements.txt
 
 # create .env from template and set values (see .env.example)
 cp .env.example .env
-# edit .env to provide DATABASE_URL, SECRET_KEY, OPENAI_API_KEY, etc.
+# edit .env to provide DATABASE_URL, SECRET_KEY, LLM_API_KEY or OPENAI_API_KEY, etc.
 
 # apply DB migrations
 alembic upgrade head
@@ -107,6 +111,7 @@ gunicorn -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:$PORT
 ```bash
 cd frontend
 npm install
+npm run lint   # optional (oxlint)
 npm run dev
 # open http://localhost:5173 (Vite default)
 ```
@@ -116,62 +121,86 @@ npm run dev
 
 ---
 
-## Environment variables (recommended)
-Create a `.env` file in backend/ (based on `backend/.env.example`). Typical variables the app expects:
-- DATABASE_URL=postgresql://user:pass@host:5432/dbname
-- SECRET_KEY=your-secret-key
-- OPENAI_API_KEY=sk-...
-- CHROMA_SETTINGS or CHROMA_DIR (if using local chromadb)
-- SENTRY_DSN (optional)
-- SMTP_* (email for password reset)
-- RENDER/DEPLOY-specific: PORT, DATABASE_URL (hosted)
+## Environment variables
+Create a `.env` file in backend/ (based on `backend/.env.example`). The project includes a `backend/.env.example`; here are the most important variables with short descriptions and example values:
 
-Always keep secrets out of version control.
+```
+# Core
+SECRET_KEY=your-secret-key-here
+DATABASE_URL=sqlite+aiosqlite:///./learnflow.db
+
+# LLM (example: Groq or OpenAI)
+LLM_API_KEY=your-llm-api-key
+LLM_BASE_URL=https://api.groq.com/openai/v1
+LLM_MODEL=llama-3.3-70b-versatile
+
+# Local Ollama fallback (optional)
+OLLAMA_BASE_URL=http://localhost:11434/v1
+
+# File storage
+UPLOAD_DIR=uploads
+
+# Speech
+STT_MODEL=tiny
+TTS_VOICE=en-US-AvaNeural
+
+# Deployment / CORS
+ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://localhost:8000
+```
+
+Keep secrets out of version control. For quick local testing, you can use SQLite (the example DATABASE_URL above) but prefer Postgres in production.
+
+---
+
+## Screenshots / Demo
+Included screenshots (replace with higher-res images in `docs/assets/screenshots/`):
+
+- Dashboard: `docs/assets/screenshots/dashboard.png`
+- Summarizer: `docs/assets/screenshots/summarizer.png`
+- Voice Tutor: `docs/assets/screenshots/voice-tutor.png`
+
+Example Markdown to embed (already used below):
+
+![Dashboard](docs/assets/screenshots/dashboard.png)
+
+![Summarizer](docs/assets/screenshots/summarizer.png)
+
+![Voice Tutor](docs/assets/screenshots/voice-tutor.png)
 
 ---
 
 ## Deployment
-- There are examples for cloud deployment in `render.yaml` and Procfile(s). The backend is production-ready with Gunicorn + Uvicorn workers, and the frontend can be built via `npm run build` and served on a static host (or served from a Node static server).
-- Build frontend for production:
+- Frontend (Vercel): https://wisdomflow-ai.vercel.app
+- Backend (Render): update the URL here when available
+
+Build frontend for production:
 ```bash
 cd frontend
 npm run build
-# deploy dist/ to static host (Netlify, Vercel, Render, S3 + CloudFront, etc.)
+# deploy dist/ to static host (Vercel, Netlify) or serve from a static service
 ```
 
 ---
 
 ## Project notes & design docs
-- Detailed product & design notes are available in:
-  - `project context.md`
-  - `project progress.md`
-  - `LFA PRD.md` and `LFA MP.md`
-- These docs explain the product vision, user flows, and project milestones.
+- `project context.md`
+- `project progress.md`
+- `LFA PRD.md`, `LFA MP.md`
 
 ---
 
 ## Contributing
-- Please open issues or PRs for bug fixes, features, or docs improvements.
-- Suggested workflow:
-  1. Fork the repo
-  2. Create a feature branch
-  3. Run tests / linting locally
-  4. Open a pull request with a clear description
-
-Add a short CONTRIBUTING.md if you want to formalize reviews, commit message style, and CI requirements.
+Please see `CONTRIBUTING.md`.
 
 ---
 
-## Troubleshooting & Tips
-- If AI endpoints error, ensure OPENAI_API_KEY (or other provider keys) are set and reachable.
-- For speech features, additional native dependencies (audio libs) may be required on your system — consult the `requirements.txt` entries like `soundfile`, `faster-whisper`.
-- If you need a quick local DB: set `DATABASE_URL=sqlite+aiosqlite:///./dev.db` in `.env` for fast testing (adjust models/migrations as needed).
+## Code of conduct
+Please follow the project's Code of Conduct: `CODE_OF_CONDUCT.md`.
 
 ---
 
-## License & Contact
-- Suggested: MIT (add LICENSE file to repo)
-- Maintainer: vinaykr-22 — open an issue or PR on GitHub for questions.
+## Maintainer
+Vinay Kumar (vinaykr-22) — vinaykumarrao07@gmail.com
 
 ---
 
@@ -182,4 +211,4 @@ Add a short CONTRIBUTING.md if you want to formalize reviews, commit message sty
 
 ---
 
-Thank you for building WisdomFlow AI — this README should give contributors and users a clear starting point. Add any missing env variables or deployment instructions to the backend `.env.example` and update this README as the project matures.
+Thank you for building WisdomFlow AI — this README and the included docs should help contributors and users get started quickly.
