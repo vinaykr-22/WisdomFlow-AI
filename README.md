@@ -6,7 +6,7 @@ A learning-first AI platform that helps users convert documents into an interact
 
 ## Live demo
 - Frontend (Vercel): https://wisdomflow-ai.vercel.app
-- Backend (Render): (update this README with your Render backend URL)
+- Backend (Render): https://wisdomflow-ai.onrender.com
 
 ## Key features
 - Upload and ingest documents (PDF, DOCX, PPTX, text)
@@ -203,12 +203,3 @@ Please follow the project's Code of Conduct: `CODE_OF_CONDUCT.md`.
 Vinay Kumar (vinaykr-22) — vinaykumarrao07@gmail.com
 
 ---
-
-## Try asking
-- "Where does the backend expose the chat endpoint and how does it combine embeddings with the LLM?"
-- "Which file implements the document ingestion pipeline (PDF -> chunks -> embeddings)?"
-- "How are user sessions and authentication handled in backend/auth.py and the frontend auth store?"
-
----
-
-Thank you for building WisdomFlow AI — this README and the included docs should help contributors and users get started quickly.
