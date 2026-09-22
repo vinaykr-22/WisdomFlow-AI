@@ -198,6 +198,27 @@ async def reset_password(body: ResetPasswordRequest, db: AsyncSession = Depends(
     return {"message": "Password has been successfully reset"}
 
 
+class DirectResetPasswordRequest(BaseModel):
+    email: EmailStr
+    new_password: str
+
+
+@router.post("/direct-reset-password")
+async def direct_reset_password(body: DirectResetPasswordRequest, db: AsyncSession = Depends(get_db)):
+    """DEV/TEST ONLY: Reset password by email without token verification."""
+    body.email = body.email.lower().strip()
+    result = await db.execute(select(User).where(User.email == body.email))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No account found with that email address")
+
+    user.hashed_password = bcrypt.hashpw(body.new_password.encode(), bcrypt.gensalt()).decode()
+    await db.commit()
+
+    return {"message": "Password has been successfully reset"}
+
+
 
 @router.put("/me", response_model=UserResponse)
 async def update_profile(
