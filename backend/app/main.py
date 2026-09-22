@@ -64,7 +64,7 @@ app = FastAPI(title="WisdomFlow AI", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:8000"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:8000", "https://wisdomflow-ai.vercel.app"],
     allow_origin_regex=r"chrome-extension://.*",
     allow_credentials=True,
     allow_methods=["*"],
