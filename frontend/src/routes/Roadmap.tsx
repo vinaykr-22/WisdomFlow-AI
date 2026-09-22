@@ -269,7 +269,7 @@ export default function RoadmapPage() {
     );
   }
 
-  // 1. DETAIL VIEW: The Active Curriculum Learning Plan
+  // 1. DETAIL VIEW: The Active Curriculum Learning Blueprint
   if (view === 'detail' && roadmap) {
     const total = roadmap.total_nodes || 1;
     const completed = roadmap.completed_nodes || 0;
@@ -283,8 +283,8 @@ export default function RoadmapPage() {
 
     return (
       <PageContainer
-        title="Learning Roadmap"
-        description="Structured curriculum path guiding you through sequential mastery."
+        title="Curriculum Blueprint"
+        description="Sequential competency blueprint for structured mastery."
         actions={
           <div className="flex items-center gap-2">
             <Button
@@ -294,119 +294,117 @@ export default function RoadmapPage() {
                 setView('list');
                 loadList();
               }}
-              leftIcon={<ChevronLeft size={14} />}
+              leftIcon={<ChevronLeft size={13} />}
             >
-              All Roadmaps ({list.length})
+              ARCHIVED BLUEPRINTS ({list.length})
             </Button>
             <Button
               size="sm"
               variant="secondary"
               onClick={() => setView('create')}
-              leftIcon={<Plus size={14} />}
+              leftIcon={<Plus size={13} />}
             >
-              New Curriculum
+              NEW BLUEPRINT
             </Button>
           </div>
         }
       >
         <div className="space-y-6">
           
-          {/* Executive Overview & Progress Card */}
-          <Card className="border-[var(--color-border)]">
-            <CardContent className="p-5 sm:p-6 space-y-5">
-              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                <div className="space-y-1.5 max-w-2xl">
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <Badge variant="primary" size="sm">
-                      {roadmap.topic_name ? `Topic: ${roadmap.topic_name}` : 'Document Curriculum'}
-                    </Badge>
-                    <span className="text-xs text-[var(--color-text-muted)]">
-                      {total} sequential stages
-                    </span>
-                  </div>
-                  <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--color-text)]">
-                    {roadmap.title}
-                  </h1>
-                  {roadmap.description && (
-                    <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">
-                      {roadmap.description}
-                    </p>
-                  )}
-                </div>
-
-                {/* Quantitative Progress Summary */}
-                <div className="p-4 rounded-xl bg-[var(--color-surface-hover)] border border-[var(--color-border)] min-w-[220px] flex-shrink-0 space-y-2.5">
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-2xl font-bold tracking-tight text-[var(--color-text)]">
-                      {pct}%
-                    </span>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-                      Curriculum
-                    </span>
-                  </div>
-                  <Progress value={pct} size="sm" />
-                  <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)] pt-0.5">
-                    <span>{completed} of {total} completed</span>
-                    <span>~{remainingHours}h remaining</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Stage Filter Strip */}
-              <div className="pt-4 border-t border-[var(--color-border)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full sm:w-auto pb-1 sm:pb-0">
-                  <span className="font-semibold text-[var(--color-text-muted)] mr-1 hidden sm:inline flex-shrink-0">
-                    Display:
+          {/* Blueprint Header & Progress Matrix */}
+          <div className="rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-[var(--color-surface)] shadow-[2px_2px_0px_#18181b] p-5 sm:p-6 space-y-5">
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+              <div className="space-y-2 max-w-2xl">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[2px] border border-stone-900 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100">
+                    {roadmap.topic_name ? `SUBJECT // ${roadmap.topic_name}` : 'READING CURRICULUM'}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setFilterStageState('all')}
-                    className={`px-3 py-1.5 rounded-md font-medium transition-colors cursor-pointer flex-shrink-0 ${
-                      filterStageState === 'all'
-                        ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                        : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'
-                    }`}
-                  >
-                    All Stages ({total})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFilterStageState('focus')}
-                    className={`px-3 py-1.5 rounded-md font-medium transition-colors cursor-pointer flex-shrink-0 ${
-                      filterStageState === 'focus'
-                        ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                        : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'
-                    }`}
-                  >
-                    Current Focus
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFilterStageState('completed')}
-                    className={`px-3 py-1.5 rounded-md font-medium transition-colors cursor-pointer flex-shrink-0 ${
-                      filterStageState === 'completed'
-                        ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                        : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'
-                    }`}
-                  >
-                    Completed ({completed})
-                  </button>
+                  <span className="font-mono text-[10px] text-stone-500 uppercase">
+                    [{total} SEQUENTIAL STAGES]
+                  </span>
                 </div>
-
-                {currentNode && (
-                  <div className="flex items-center gap-2 text-[var(--color-text-muted)]">
-                    <span>Current stage:</span>
-                    <span className="font-semibold text-[var(--color-text)] truncate max-w-[200px]">
-                      {currentNode.title}
-                    </span>
-                  </div>
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100 font-serif">
+                  {roadmap.title}
+                </h1>
+                {roadmap.description && (
+                  <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 leading-relaxed font-sans">
+                    {roadmap.description}
+                  </p>
                 )}
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Clean Vertical Progression Spine */}
-          <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3 sm:before:left-4 before:top-4 before:bottom-4 before:w-0.5 before:bg-[var(--color-border)]">
+              {/* Quantitative Metrics Matrix */}
+              <div className="p-4 rounded-[2px] bg-stone-100 dark:bg-stone-900 border-[1.5px] border-stone-900 dark:border-stone-700 min-w-[220px] flex-shrink-0 space-y-2 shadow-[2px_2px_0px_#18181b]">
+                <div className="flex items-baseline justify-between">
+                  <span className="font-mono text-2xl font-bold text-stone-900 dark:text-stone-100">
+                    {pct}%
+                  </span>
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-stone-500">
+                    BLUEPRINT METRIC
+                  </span>
+                </div>
+                <Progress value={pct} size="sm" />
+                <div className="flex items-center justify-between font-mono text-[10px] text-stone-600 dark:text-stone-400 pt-0.5">
+                  <span>{completed} / {total} COMPLETED</span>
+                  <span>~{remainingHours}H REMAINING</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Stage Filter Tab Bar */}
+            <div className="pt-4 border-t-[1.5px] border-stone-900 dark:border-stone-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full sm:w-auto pb-1 sm:pb-0">
+                <span className="font-mono text-[10px] font-bold text-stone-500 uppercase mr-1 hidden sm:inline flex-shrink-0">
+                  FILTER:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setFilterStageState('all')}
+                  className={`px-2.5 py-1 rounded-[2px] font-mono text-[10px] font-bold uppercase transition-all cursor-pointer flex-shrink-0 border ${
+                    filterStageState === 'all'
+                      ? 'border-stone-900 dark:border-stone-700 bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 shadow-[1px_1px_0px_#18181b]'
+                      : 'border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-800'
+                  }`}
+                >
+                  ALL STAGES ({total})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterStageState('focus')}
+                  className={`px-2.5 py-1 rounded-[2px] font-mono text-[10px] font-bold uppercase transition-all cursor-pointer flex-shrink-0 border ${
+                    filterStageState === 'focus'
+                      ? 'border-stone-900 dark:border-stone-700 bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 shadow-[1px_1px_0px_#18181b]'
+                      : 'border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-800'
+                  }`}
+                >
+                  ACTIVE FOCUS
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterStageState('completed')}
+                  className={`px-2.5 py-1 rounded-[2px] font-mono text-[10px] font-bold uppercase transition-all cursor-pointer flex-shrink-0 border ${
+                    filterStageState === 'completed'
+                      ? 'border-stone-900 dark:border-stone-700 bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 shadow-[1px_1px_0px_#18181b]'
+                      : 'border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-800'
+                  }`}
+                >
+                  COMPLETED ({completed})
+                </button>
+              </div>
+
+              {currentNode && (
+                <div className="flex items-center gap-2 font-mono text-[10px] text-stone-500">
+                  <span>CURRENT OBJECTIVE:</span>
+                  <span className="font-bold text-stone-900 dark:text-stone-100 truncate max-w-[200px]">
+                    {currentNode.title}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Technical Blueprint Progression Spine */}
+          <div className="relative pl-8 sm:pl-10 space-y-6 before:absolute before:left-3.5 sm:before:left-4 before:top-4 before:bottom-4 before:w-[2px] before:border-l-[2px] before:border-dashed before:border-stone-900 dark:before:border-stone-700">
             {displayedNodes.map((node, index) => {
               const isCompleted = node.status === 'completed';
               const isCurrent = node.node_id === currentNode?.node_id;
@@ -420,16 +418,16 @@ export default function RoadmapPage() {
 
               return (
                 <div key={node.node_id} className="relative group">
-                  {/* Progression Node Indicator Dot */}
+                  {/* Square Progression Node Indicator */}
                   <div
-                    className={`absolute -left-6 sm:-left-8 top-5 w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border-2 transition-all select-none z-10 ${
+                    className={`absolute -left-8 sm:-left-10 top-5 w-7 h-7 sm:w-8 sm:h-8 rounded-[2px] flex items-center justify-center border-[1.5px] border-stone-900 dark:border-stone-700 transition-all select-none z-10 font-mono text-xs font-bold ${
                       isCompleted
-                        ? 'bg-emerald-500 border-emerald-500 text-white'
+                        ? 'bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 shadow-[1px_1px_0px_#18181b]'
                         : isCurrent
-                        ? 'bg-[var(--color-surface)] border-[var(--color-primary)] text-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/25 font-bold shadow-xs'
+                        ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 ring-2 ring-stone-900 dark:ring-stone-100 shadow-[2px_2px_0px_#18181b]'
                         : isLocked
-                        ? 'bg-[var(--color-surface)] border-slate-300 dark:border-slate-700 text-slate-400'
-                        : 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)]'
+                        ? 'bg-stone-200 dark:bg-stone-800 text-stone-400 border-dashed'
+                        : 'bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-400'
                     }`}
                   >
                     {isCompleted ? (
@@ -437,58 +435,59 @@ export default function RoadmapPage() {
                     ) : isLocked ? (
                       <Lock size={12} />
                     ) : (
-                      <span className="text-xs font-semibold">{index + 1}</span>
+                      <span>{String(index + 1).padStart(2, '0')}</span>
                     )}
                   </div>
 
-                  {/* Stage Card Container */}
+                  {/* Stage Blueprint Card */}
                   <div
-                    className={`rounded-xl border transition-all ${
+                    className={`rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 transition-all ${
                       isCurrent
-                        ? 'border-[var(--color-primary)] bg-[var(--color-surface)] shadow-xs ring-1 ring-[var(--color-primary)]/20 p-5 sm:p-6'
+                        ? 'bg-white dark:bg-stone-900 shadow-[3px_3px_0px_#18181b] p-5 sm:p-6'
                         : isCompleted
-                        ? 'border-[var(--color-border)] bg-[var(--color-surface)]/60 opacity-80 hover:opacity-100 p-4 sm:p-5'
+                        ? 'bg-stone-50 dark:bg-stone-900/70 p-4 sm:p-5 opacity-90'
                         : isLocked
-                        ? 'border-[var(--color-border)] bg-[var(--color-surface-hover)]/40 p-4 sm:p-5 opacity-70'
-                        : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:border-slate-300 dark:hover:border-slate-700 p-4 sm:p-5'
+                        ? 'bg-stone-100/60 dark:bg-stone-900/40 p-4 sm:p-5 opacity-70 border-dashed'
+                        : 'bg-white dark:bg-stone-900 shadow-[2px_2px_0px_#18181b] p-4 sm:p-5'
                     }`}
                   >
-                    {/* Header Row: Step, Type Badge, Difficulty, Status */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
-                          Stage {index + 1}
+                    {/* Header Row */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2 pb-2 border-b border-stone-200 dark:border-stone-800">
+                      <div className="flex flex-wrap items-center gap-2 font-mono text-[10px]">
+                        <span className="font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+                          STAGE {String(index + 1).padStart(2, '0')}
                         </span>
 
                         {isCurrent && (
                           <Badge variant="primary" size="sm">
-                            Current Focus
+                            ACTIVE OBJECTIVE
                           </Badge>
                         )}
 
                         {isCompleted && (
                           <Badge variant="success" size="sm">
-                            Completed
+                            COMPLETED
                           </Badge>
                         )}
 
                         {isLocked && (
                           <Badge variant="neutral" size="sm">
-                            Locked
+                            LOCKED
                           </Badge>
                         )}
 
-                        <span className="text-xs font-medium text-[var(--color-text-muted)]">
-                          {typeLabels[node.type] || node.type}
+                        <span className="text-stone-500 uppercase">
+                          // {typeLabels[node.type] || node.type}
                         </span>
                       </div>
 
                       {/* Estimated Duration & Difficulty */}
-                      <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
+                      <div className="flex items-center gap-3 font-mono text-[10px] text-stone-500 uppercase">
                         <span className="flex items-center gap-1">
-                          <Clock size={12} /> {node.estimated_minutes} min
+                          <Clock size={11} /> {node.estimated_minutes} MIN
                         </span>
-                        <span className="capitalize font-medium">
+                        <span>//</span>
+                        <span className="font-bold text-stone-700 dark:text-stone-300">
                           {node.difficulty}
                         </span>
                       </div>
@@ -496,36 +495,36 @@ export default function RoadmapPage() {
 
                     {/* Stage Title & Description */}
                     <h3
-                      className={`font-bold mb-1.5 tracking-tight ${
+                      className={`font-bold mb-1.5 tracking-tight font-serif ${
                         isCurrent
-                          ? 'text-lg text-[var(--color-text)]'
+                          ? 'text-lg text-stone-900 dark:text-stone-100'
                           : isCompleted
-                          ? 'text-base text-[var(--color-text-secondary)]'
-                          : 'text-base text-[var(--color-text)]'
+                          ? 'text-base text-stone-700 dark:text-stone-300'
+                          : 'text-base text-stone-900 dark:text-stone-100'
                       }`}
                     >
                       {node.title}
                     </h3>
 
                     {node.description && (
-                      <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed mb-3">
+                      <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 leading-relaxed mb-3">
                         {node.description}
                       </p>
                     )}
 
                     {/* Locked Reason Notice */}
                     {isLocked && (
-                      <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300 flex items-center gap-2 mb-3">
-                        <Lock size={13} className="flex-shrink-0" />
-                        <span>Complete earlier prerequisite stages to unlock this module.</span>
+                      <div className="p-2.5 rounded-[2px] bg-stone-100 dark:bg-stone-800 border border-stone-900 dark:border-stone-700 font-mono text-[11px] text-stone-700 dark:text-stone-300 flex items-center gap-2 mb-3">
+                        <Lock size={12} className="flex-shrink-0" />
+                        <span>PREREQUISITE UNMET: Satisfy preceding stages to unlock module.</span>
                       </div>
                     )}
 
                     {/* Learning Resources */}
                     {node.resources && node.resources.length > 0 && (
                       <div className="pt-2 pb-1">
-                        <div className="text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">
-                          Recommended Resources
+                        <div className="font-mono text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1.5">
+                          // CURATED SOURCE REFERENCES:
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {node.resources.map((r, rIdx) => (
@@ -534,11 +533,11 @@ export default function RoadmapPage() {
                               href={r.url || '#'}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-[var(--color-surface-hover)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)]/40 transition-colors"
+                              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-[2px] font-mono text-[10px] font-semibold bg-stone-100 dark:bg-stone-800 border border-stone-900 dark:border-stone-700 text-stone-900 dark:text-stone-100 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
                             >
-                              <BookOpen size={11} />
+                              <BookOpen size={10} />
                               <span className="truncate max-w-[200px]">{r.title}</span>
-                              <ExternalLink size={10} className="opacity-60" />
+                              <ExternalLink size={9} className="opacity-60" />
                             </a>
                           ))}
                         </div>
@@ -546,25 +545,27 @@ export default function RoadmapPage() {
                     )}
 
                     {/* Action Bar */}
-                    <div className="pt-4 mt-3 border-t border-[var(--color-border)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="pt-3 mt-3 border-t border-dashed border-stone-300 dark:border-stone-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       {/* Study Shortcuts */}
                       <div className="flex flex-wrap items-center gap-2">
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => navigate(`/chat?q=${encodeURIComponent(`Explain this roadmap stage: ${node.title}. ${node.description}`)}`)}
-                          leftIcon={<MessageSquare size={13} />}
+                          leftIcon={<MessageSquare size={12} />}
+                          className="font-mono text-xs"
                         >
-                          Ask Tutor
+                          EXPLAIN IN TUTOR
                         </Button>
 
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => navigate('/quizzes')}
-                          leftIcon={<HelpCircle size={13} />}
+                          leftIcon={<HelpCircle size={12} />}
+                          className="font-mono text-xs"
                         >
-                          Practice Quiz
+                          EVALUATE RETENTION
                         </Button>
                       </div>
 
@@ -576,9 +577,9 @@ export default function RoadmapPage() {
                             variant="outline"
                             isLoading={isUpdating}
                             onClick={() => updateNodeStatus(node.node_id, 'in_progress')}
-                            leftIcon={<RotateCcw size={13} />}
+                            leftIcon={<RotateCcw size={12} />}
                           >
-                            Mark Incomplete
+                            MARK INCOMPLETE
                           </Button>
                         ) : isCurrent ? (
                           <Button
@@ -586,9 +587,9 @@ export default function RoadmapPage() {
                             variant="primary"
                             isLoading={isUpdating}
                             onClick={() => updateNodeStatus(node.node_id, 'completed')}
-                            leftIcon={<CheckCircle2 size={14} />}
+                            leftIcon={<CheckCircle2 size={13} />}
                           >
-                            Mark Complete
+                            MARK COMPLETED
                           </Button>
                         ) : !isLocked ? (
                           <Button
@@ -596,9 +597,9 @@ export default function RoadmapPage() {
                             variant="outline"
                             isLoading={isUpdating}
                             onClick={() => updateNodeStatus(node.node_id, 'in_progress')}
-                            leftIcon={<PlayCircle size={14} />}
+                            leftIcon={<PlayCircle size={13} />}
                           >
-                            Start Stage
+                            COMMENCE STAGE
                           </Button>
                         ) : null}
                       </div>
@@ -617,16 +618,16 @@ export default function RoadmapPage() {
   if (view === 'list') {
     return (
       <PageContainer
-        title="My Roadmaps"
-        description="Personalized curricula and skill tracks generated for your study goals."
+        title="Curriculum Catalog"
+        description="Structured educational roadmaps and sequential study plans."
         actions={
           <Button
             size="sm"
             variant="primary"
             onClick={() => setView('create')}
-            leftIcon={<Plus size={14} />}
+            leftIcon={<Plus size={13} />}
           >
-            New Roadmap
+            NEW BLUEPRINT
           </Button>
         }
       >
@@ -634,17 +635,17 @@ export default function RoadmapPage() {
           {list.length === 0 ? (
             <Card>
               <CardContent className="py-16 text-center space-y-4">
-                <div className="w-12 h-12 rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center mx-auto">
-                  <MapIcon size={24} />
+                <div className="w-12 h-12 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 flex items-center justify-center mx-auto shadow-[2px_2px_0px_#18181b]">
+                  <MapIcon size={20} />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-base font-bold text-[var(--color-text)]">No roadmaps generated yet</h3>
-                  <p className="text-xs text-[var(--color-text-muted)] max-w-sm mx-auto">
-                    Generate your first structured learning plan from your course documents or any subject topic.
+                  <h3 className="text-base font-bold text-stone-900 dark:text-stone-100 font-serif">No curricula compiled yet</h3>
+                  <p className="text-xs text-stone-600 dark:text-stone-400 max-w-sm mx-auto">
+                    Compile your first ordered learning roadmap from primary readings or a designated topic.
                   </p>
                 </div>
                 <Button variant="primary" onClick={() => setView('create')}>
-                  Create Learning Path
+                  COMPILE CURRICULUM
                 </Button>
               </CardContent>
             </Card>
@@ -665,26 +666,26 @@ export default function RoadmapPage() {
                     <CardHeader>
                       <div className="flex items-center justify-between mb-1.5">
                         <Badge variant="primary" size="sm">
-                          {r.topic_name ? r.topic_name : 'Document'}
+                          {r.topic_name ? r.topic_name : 'READING'}
                         </Badge>
-                        <span className="text-xs font-semibold text-[var(--color-text-muted)] flex items-center gap-1">
-                          <Clock size={12} /> ~{r.estimated_total_hours}h total
+                        <span className="font-mono text-[10px] text-stone-500 flex items-center gap-1 uppercase">
+                          <Clock size={10} /> ~{r.estimated_total_hours}H TOTAL
                         </span>
                       </div>
-                      <CardTitle className="text-base font-bold line-clamp-1">{r.title}</CardTitle>
+                      <CardTitle className="text-base font-bold font-serif line-clamp-1">{r.title}</CardTitle>
                     </CardHeader>
 
                     <CardContent className="space-y-3 pt-0">
                       <div className="space-y-1.5">
-                        <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
-                          <span>{completed} of {total} stages completed</span>
-                          <span className="font-semibold text-[var(--color-text)]">{pct}%</span>
+                        <div className="flex justify-between font-mono text-[10px] text-stone-500 uppercase">
+                          <span>{completed} / {total} STAGES COMPLETED</span>
+                          <span className="font-bold text-stone-900 dark:text-stone-100">{pct}%</span>
                         </div>
                         <Progress value={pct} size="sm" />
                       </div>
 
-                      <div className="pt-2 flex items-center justify-between text-xs font-semibold text-[var(--color-primary)]">
-                        <span>Continue Curriculum</span>
+                      <div className="pt-2 flex items-center justify-between font-mono text-xs font-bold text-stone-900 dark:text-stone-100">
+                        <span>OPEN BLUEPRINT</span>
                         <ArrowRight size={13} />
                       </div>
                     </CardContent>
@@ -701,17 +702,17 @@ export default function RoadmapPage() {
   // 3. CREATE VIEW: Generate Curriculum
   return (
     <PageContainer
-      title="Roadmap Generator"
-      description="Construct an ordered, competency-based curriculum from your course readings or custom subject."
+      title="Curriculum Architect"
+      description="Design a sequential, competency-based learning path from readings or target topics."
       actions={
         list.length > 0 ? (
           <Button
             size="sm"
             variant="outline"
             onClick={() => setView('list')}
-            leftIcon={<ChevronLeft size={14} />}
+            leftIcon={<ChevronLeft size={13} />}
           >
-            My Roadmaps ({list.length})
+            CATALOG ({list.length})
           </Button>
         ) : undefined
       }
@@ -719,16 +720,16 @@ export default function RoadmapPage() {
       <div className="max-w-xl mx-auto space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Define Curriculum Source</CardTitle>
+            <CardTitle>Define Blueprint Scope</CardTitle>
             <CardDescription>
-              Choose an uploaded lecture document or specify any target concept or subject.
+              Select an archived reading or specify a target discipline or subject area.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
             {/* Option 1: Document */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] flex items-center gap-1.5">
-                <FileText size={13} className="text-[var(--color-primary)]" /> Source Document
+              <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
+                <FileText size={12} /> [ SOURCE READING ]
               </label>
               <select
                 value={docId}
@@ -736,9 +737,9 @@ export default function RoadmapPage() {
                   setDocId(e.target.value);
                   setTopicName('');
                 }}
-                className="w-full px-3.5 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="w-full px-3 py-2 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-xs font-mono focus:outline-none shadow-[2px_2px_0px_#18181b]"
               >
-                <option value="">Select an uploaded document...</option>
+                <option value="">SELECT ARCHIVED DOCUMENT...</option>
                 {docs.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.title}
@@ -748,17 +749,17 @@ export default function RoadmapPage() {
             </div>
 
             <div className="relative flex py-1 items-center">
-              <div className="flex-grow border-t border-[var(--color-border)]" />
-              <span className="flex-shrink-0 mx-3 text-[11px] font-semibold text-[var(--color-text-muted)] uppercase">
-                or
+              <div className="flex-grow border-t border-dashed border-stone-400 dark:border-stone-600" />
+              <span className="flex-shrink-0 mx-3 font-mono text-[10px] font-bold text-stone-500 uppercase">
+                OR
               </span>
-              <div className="flex-grow border-t border-[var(--color-border)]" />
+              <div className="flex-grow border-t border-dashed border-stone-400 dark:border-stone-600" />
             </div>
 
             {/* Option 2: Custom Subject Topic */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] flex items-center gap-1.5">
-                <BookOpen size={13} className="text-purple-500" /> Subject Topic
+              <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
+                <BookOpen size={12} /> [ TARGET DISCIPLINE // SUBJECT ]
               </label>
               <input
                 type="text"
@@ -767,8 +768,8 @@ export default function RoadmapPage() {
                   setTopicName(e.target.value);
                   setDocId('');
                 }}
-                placeholder="e.g., Computer Systems, Macroeconomics, React Architecture..."
-                className="w-full px-3.5 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] text-sm placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                placeholder="e.g., Distributed Systems, Macroeconomics, Quantum Mechanics..."
+                className="w-full px-3 py-2 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-xs font-mono placeholder-stone-400 focus:outline-none shadow-[2px_2px_0px_#18181b]"
               />
             </div>
 
@@ -779,10 +780,10 @@ export default function RoadmapPage() {
                 onClick={handleGenerate}
                 disabled={generating || (!docId && !topicName.trim())}
                 isLoading={generating}
-                className="w-full h-11 text-sm font-semibold"
-                leftIcon={!generating ? <MapIcon size={16} /> : undefined}
+                className="w-full h-10 text-xs font-mono font-bold"
+                leftIcon={!generating ? <MapIcon size={14} /> : undefined}
               >
-                {generating ? 'Structuring Learning Plan...' : 'Generate Roadmap'}
+                {generating ? 'COMPILING CURRICULUM BLUEPRINT...' : 'BUILD LEARNING BLUEPRINT'}
               </Button>
             </div>
           </CardContent>

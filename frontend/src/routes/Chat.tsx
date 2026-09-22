@@ -12,7 +12,6 @@ import {
   PanelRightOpen,
   RotateCcw,
   HelpCircle,
-  Lightbulb,
   BookOpen,
   ArrowRight,
   Clock,
@@ -473,71 +472,66 @@ export default function Chat() {
     .map((d) => d.title);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6.5rem)] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden shadow-xs">
+    <div className="flex flex-col h-[calc(100vh-6.5rem)] rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-[var(--color-surface)] overflow-hidden shadow-[2px_2px_0px_#18181b]">
       
-      {/* 1. Header Toolbar */}
-      <div className="h-13 px-4 border-b border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-between gap-3 flex-shrink-0">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-7 h-7 rounded-md bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
-            <BookOpen size={15} />
+      {/* 1. Header Technical Bar */}
+      <div className="h-12 px-4 border-b-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-100 dark:bg-stone-900 flex items-center justify-between gap-3 flex-shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-6 h-6 rounded-[2px] border border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 flex items-center justify-center flex-shrink-0 font-mono text-xs font-bold shadow-[1px_1px_0px_#18181b]">
+            T
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h1 className="text-sm font-semibold text-[var(--color-text)] truncate">
-                AI Study Tutor
-              </h1>
-              {selectedDocIds.length > 0 ? (
-                <Badge variant="primary" size="sm" className="hidden sm:inline-flex">
-                  {selectedDocIds.length} source{selectedDocIds.length > 1 ? 's' : ''} active
-                </Badge>
-              ) : (
-                <Badge variant="neutral" size="sm" className="hidden sm:inline-flex">
-                  General Tutor
-                </Badge>
-              )}
-            </div>
+          <div className="flex items-center gap-2 min-w-0">
+            <h1 className="text-xs font-mono font-bold tracking-wider text-stone-900 dark:text-stone-100 uppercase truncate">
+              [ TUTOR WORKSPACE // STUDY DIALOGUE ]
+            </h1>
+            {selectedDocIds.length > 0 ? (
+              <Badge variant="primary" size="sm" className="hidden sm:inline-flex">
+                {selectedDocIds.length} ACTIVE SOURCE{selectedDocIds.length > 1 ? 'S' : ''}
+              </Badge>
+            ) : (
+              <Badge variant="neutral" size="sm" className="hidden sm:inline-flex">
+                OPEN WORKSPACE
+              </Badge>
+            )}
           </div>
         </div>
 
         {/* Header Actions */}
         <div className="flex items-center gap-2">
-          {/* Quick Voice Tutor Switch */}
           <Button
             size="sm"
             variant="ghost"
             onClick={() => navigate('/voice-tutor')}
-            className="text-xs text-[var(--color-text-muted)] hidden md:inline-flex"
-            leftIcon={<Mic size={14} />}
+            className="text-xs font-mono hidden md:inline-flex"
+            leftIcon={<Mic size={13} />}
           >
-            Voice Tutor
+            AUDIO SESSION
           </Button>
 
-          {/* New Session Button */}
           {(messages.length > 0 || convId) && (
             <Button
               size="sm"
               variant="outline"
               onClick={startNewSession}
               disabled={streaming}
-              leftIcon={<RotateCcw size={13} />}
+              leftIcon={<RotateCcw size={12} />}
             >
-              <span className="hidden sm:inline">New Session</span>
-              <span className="sm:hidden">New</span>
+              <span className="hidden sm:inline">RESET SESSION</span>
+              <span className="sm:hidden">RESET</span>
             </Button>
           )}
 
-          {/* Toggle Secondary Context Panel */}
           <Button
             size="sm"
             variant={isSidePanelOpen ? 'secondary' : 'outline'}
             onClick={() => setIsSidePanelOpen(!isSidePanelOpen)}
             title={isSidePanelOpen ? 'Collapse study panel' : 'Open study panel'}
-            leftIcon={isSidePanelOpen ? <PanelRightClose size={15} /> : <PanelRightOpen size={15} />}
+            leftIcon={isSidePanelOpen ? <PanelRightClose size={13} /> : <PanelRightOpen size={13} />}
           >
-            <span className="hidden sm:inline">Context & History</span>
-            <span className="sm:hidden">Context</span>
+            <span className="hidden sm:inline">SOURCES & ARCHIVE</span>
+            <span className="sm:hidden">PANEL</span>
             {selectedDocIds.length > 0 && !isSidePanelOpen && (
-              <span className="w-4 h-4 ml-1 rounded-full bg-[var(--color-primary)] text-white text-[10px] flex items-center justify-center font-bold">
+              <span className="ml-1 px-1 py-0.2 rounded-[2px] bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 font-mono text-[10px] font-bold">
                 {selectedDocIds.length}
               </span>
             )}
@@ -548,91 +542,94 @@ export default function Chat() {
       {/* 2. Main Workspace Split View */}
       <div className="flex-1 flex min-h-0 overflow-hidden">
         
-        {/* Left / Center: Conversation Stream & Composer */}
-        <div className="flex-1 flex flex-col min-w-0 bg-[var(--color-surface)]">
+        {/* Center: Conversation Stream & Outlined Composer */}
+        <div className="flex-1 flex flex-col min-w-0 bg-[var(--color-bg)]">
           
           {/* Messages Scroll Area */}
           <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-6">
             
-            {/* Empty State: Grounded Study Workspace */}
+            {/* Empty State: Technical Study Workspace */}
             {messages.length === 0 && !loadingHistory && (
-              <div className="h-full flex flex-col items-center justify-center max-w-xl mx-auto text-center py-8 animate-in fade-in duration-300">
-                <div className="w-11 h-11 rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center mb-3">
-                  <Lightbulb size={22} />
+              <div className="h-full flex flex-col items-center justify-center max-w-xl mx-auto text-center py-6">
+                <div className="w-12 h-12 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 flex items-center justify-center mb-4 shadow-[2px_2px_0px_#18181b]">
+                  <BookOpen size={20} />
                 </div>
                 
-                <h2 className="text-base font-bold text-[var(--color-text)] mb-1">
-                  What would you like to master today?
+                <span className="font-mono text-[11px] uppercase tracking-wider text-stone-500 mb-1">
+                  [ INQUIRY WORKSPACE // READY ]
+                </span>
+                <h2 className="text-base font-bold text-stone-900 dark:text-stone-100 mb-2 font-serif">
+                  Ground questions in course readings or examine specific formulas
                 </h2>
-                <p className="text-xs text-[var(--color-text-muted)] max-w-md mb-6 leading-relaxed">
+                <p className="text-xs text-stone-600 dark:text-stone-400 max-w-md mb-6 leading-relaxed">
                   {selectedDocIds.length > 0
-                    ? `Currently grounded in ${selectedDocIds.length} document${selectedDocIds.length > 1 ? 's' : ''}. Inquire about formulas, break down arguments, or test your retention.`
-                    : 'Select documents from the right panel to ground answers in your course readings, or start asking general study questions.'}
+                    ? `Currently grounded in ${selectedDocIds.length} active reading${selectedDocIds.length > 1 ? 's' : ''}. Select an inquiry topic below or draft a specific question in the composer.`
+                    : 'Attach reference documents from the right panel to ground answers in primary materials, or begin an open inquiry.'}
                 </p>
 
-                {/* Grounded Study Prompt Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full text-left">
+                {/* Grounded Technical Study Prompts */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full text-left">
                   <button
                     type="button"
                     onClick={() => sendMessage('Can you explain the main theoretical concept in this material step-by-step with clear intuition?')}
-                    className="p-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-primary)]/40 transition-all group cursor-pointer"
+                    className="p-3.5 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 hover:translate-x-[1px] hover:translate-y-[1px] shadow-[2px_2px_0px_#18181b] transition-all group cursor-pointer"
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-semibold text-[var(--color-text)] group-hover:text-[var(--color-primary)] transition-colors">
-                        Explain Core Concept
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-mono font-bold uppercase text-stone-900 dark:text-stone-100">
+                        01 // CORE EXPLANATION
                       </span>
-                      <ArrowRight size={12} className="text-[var(--color-text-muted)] group-hover:translate-x-0.5 transition-transform" />
+                      <ArrowRight size={13} className="text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 group-hover:translate-x-0.5 transition-all" />
                     </div>
-                    <p className="text-[11px] text-[var(--color-text-muted)] line-clamp-2">
-                      Step-by-step breakdown of difficult theories or arguments.
+                    <p className="text-xs text-stone-600 dark:text-stone-400 line-clamp-2 leading-relaxed">
+                      Structured breakdown of foundational laws, theories, and arguments.
                     </p>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => sendMessage('Give me a concrete, real-world case study or scenario that illustrates how this works in practice.')}
-                    className="p-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-primary)]/40 transition-all group cursor-pointer"
+                    className="p-3.5 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 hover:translate-x-[1px] hover:translate-y-[1px] shadow-[2px_2px_0px_#18181b] transition-all group cursor-pointer"
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-semibold text-[var(--color-text)] group-hover:text-[var(--color-primary)] transition-colors">
-                        Real-World Application
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-mono font-bold uppercase text-stone-900 dark:text-stone-100">
+                        02 // WORKED APPLICATION
                       </span>
-                      <ArrowRight size={12} className="text-[var(--color-text-muted)] group-hover:translate-x-0.5 transition-transform" />
+                      <ArrowRight size={13} className="text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 group-hover:translate-x-0.5 transition-all" />
                     </div>
-                    <p className="text-[11px] text-[var(--color-text-muted)] line-clamp-2">
-                      Explore concrete scenarios showing practical mechanics.
+                    <p className="text-xs text-stone-600 dark:text-stone-400 line-clamp-2 leading-relaxed">
+                      Concrete mechanics and real-world applied scenarios.
                     </p>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => sendMessage('Test my understanding by asking me a challenging conceptual question on this topic. Wait for my answer.')}
-                    className="p-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-primary)]/40 transition-all group cursor-pointer"
+                    className="p-3.5 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 hover:translate-x-[1px] hover:translate-y-[1px] shadow-[2px_2px_0px_#18181b] transition-all group cursor-pointer"
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-semibold text-[var(--color-text)] group-hover:text-[var(--color-primary)] transition-colors">
-                        Test My Retention
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-mono font-bold uppercase text-stone-900 dark:text-stone-100">
+                        03 // RETENTION CHECK
                       </span>
-                      <ArrowRight size={12} className="text-[var(--color-text-muted)] group-hover:translate-x-0.5 transition-transform" />
+                      <ArrowRight size={13} className="text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 group-hover:translate-x-0.5 transition-all" />
                     </div>
-                    <p className="text-[11px] text-[var(--color-text-muted)] line-clamp-2">
-                      Active recall challenge evaluating your conceptual mastery.
+                    <p className="text-xs text-stone-600 dark:text-stone-400 line-clamp-2 leading-relaxed">
+                      Active recall challenge evaluating conceptual mastery.
                     </p>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => sendMessage('List the top 5 essential definitions, equations, or laws I must memorize from this material.')}
-                    className="p-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-primary)]/40 transition-all group cursor-pointer"
+                    className="p-3.5 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 hover:translate-x-[1px] hover:translate-y-[1px] shadow-[2px_2px_0px_#18181b] transition-all group cursor-pointer"
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-semibold text-[var(--color-text)] group-hover:text-[var(--color-primary)] transition-colors">
-                        Key Definitions
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-mono font-bold uppercase text-stone-900 dark:text-stone-100">
+                        04 // KEY AXIOMS & FORMULAS
                       </span>
-                      <ArrowRight size={12} className="text-[var(--color-text-muted)] group-hover:translate-x-0.5 transition-transform" />
+                      <ArrowRight size={13} className="text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 group-hover:translate-x-0.5 transition-all" />
                     </div>
-                    <p className="text-[11px] text-[var(--color-text-muted)] line-clamp-2">
-                      Curated summary of high-priority terminology and formulas.
+                    <p className="text-xs text-stone-600 dark:text-stone-400 line-clamp-2 leading-relaxed">
+                      High-priority terminology, definitions, and equations.
                     </p>
                   </button>
                 </div>
@@ -647,15 +644,15 @@ export default function Chat() {
               return (
                 <div
                   key={idx}
-                  className={`max-w-3xl mx-auto flex flex-col ${isUser ? 'items-end' : 'items-start'} animate-in fade-in duration-200`}
+                  className="max-w-3xl mx-auto flex flex-col space-y-2"
                 >
-                  {/* Message Author & Context Metadata */}
-                  <div className="flex items-center gap-2 mb-1.5 px-1">
-                    <span className="text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">
-                      {isUser ? 'You' : 'AI Tutor'}
+                  {/* Message Author & Technical Label */}
+                  <div className={`flex items-center gap-2 px-1 ${isUser ? 'justify-end' : 'justify-start'}`}>
+                    <span className="font-mono text-[10px] font-bold text-stone-500 uppercase tracking-wider">
+                      {isUser ? '[ STUDENT // INQUIRY ]' : '[ TUTOR // REFERENCE MEMORANDUM ]'}
                     </span>
                     {m.created_at && (
-                      <span className="text-[10px] text-[var(--color-text-muted)]">
+                      <span className="font-mono text-[10px] text-stone-400">
                         {formatRelativeTime(m.created_at)}
                       </span>
                     )}
@@ -663,63 +660,63 @@ export default function Chat() {
 
                   {/* Message Body Container */}
                   {isUser ? (
-                    <div className="px-4 py-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm max-w-[88%] border border-slate-200 dark:border-slate-700 leading-relaxed shadow-xs">
+                    <div className="self-end max-w-[85%] p-4 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 text-sm leading-relaxed shadow-[2px_2px_0px_#18181b]">
                       {m.content}
                     </div>
                   ) : (
-                    <div className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 sm:p-6 shadow-xs space-y-3">
+                    <div className="w-full rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 p-5 sm:p-6 shadow-[2px_2px_0px_#18181b] space-y-4">
                       {/* Tutor Message Content */}
                       {m.content ? (
                         <FormattedTutorMessage content={m.content} />
                       ) : (
-                        <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)] py-2">
-                          <Loader2 size={14} className="animate-spin text-[var(--color-primary)]" />
-                          <span>Formulating explanation from study material...</span>
+                        <div className="flex items-center gap-2.5 font-mono text-xs text-stone-600 dark:text-stone-400 py-3">
+                          <Loader2 size={14} className="animate-spin text-stone-900 dark:text-stone-100" />
+                          <span>SYNTHESIZING EXPLANATION FROM SOURCE TEXTS...</span>
                         </div>
                       )}
 
                       {/* Study Action Bar (Shown when response is complete) */}
                       {m.content && (!streaming || !isLast) && (
-                        <div className="pt-3 mt-3 border-t border-[var(--color-border)] flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <div className="pt-3 border-t border-dashed border-stone-300 dark:border-stone-700 flex flex-wrap items-center justify-between gap-2 text-xs">
                           {/* Follow-up Prompts */}
                           <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="text-[11px] font-medium text-[var(--color-text-muted)] mr-1 hidden sm:inline">
-                              Explore further:
+                            <span className="font-mono text-[10px] font-bold uppercase text-stone-500 mr-1 hidden sm:inline">
+                              ACTIONS:
                             </span>
                             <button
                               onClick={() => handleFollowUpAction('explain')}
                               disabled={streaming}
-                              className="px-2.5 py-1 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] text-[11px] font-medium transition-colors cursor-pointer disabled:opacity-50"
+                              className="px-2 py-1 rounded-[2px] border border-stone-900 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 font-mono text-[10px] font-bold uppercase transition-colors cursor-pointer disabled:opacity-50"
                             >
-                              Explain differently
+                              [ RE-EXPLAIN ]
                             </button>
                             <button
                               onClick={() => handleFollowUpAction('simplify')}
                               disabled={streaming}
-                              className="px-2.5 py-1 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] text-[11px] font-medium transition-colors cursor-pointer disabled:opacity-50"
+                              className="px-2 py-1 rounded-[2px] border border-stone-900 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 font-mono text-[10px] font-bold uppercase transition-colors cursor-pointer disabled:opacity-50"
                             >
-                              Simplify
+                              [ SIMPLIFY ]
                             </button>
                             <button
                               onClick={() => handleFollowUpAction('example')}
                               disabled={streaming}
-                              className="px-2.5 py-1 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] text-[11px] font-medium transition-colors cursor-pointer disabled:opacity-50"
+                              className="px-2 py-1 rounded-[2px] border border-stone-900 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 font-mono text-[10px] font-bold uppercase transition-colors cursor-pointer disabled:opacity-50"
                             >
-                              Give example
+                              [ CONCRETE EXAMPLE ]
                             </button>
                             <button
                               onClick={() => handleFollowUpAction('quiz')}
                               disabled={streaming}
-                              className="px-2.5 py-1 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] text-[11px] font-medium transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                              className="px-2 py-1 rounded-[2px] border border-stone-900 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 font-mono text-[10px] font-bold uppercase transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1"
                             >
-                              <HelpCircle size={11} /> Quiz me
+                              <HelpCircle size={10} /> [ TEST RETENTION ]
                             </button>
                             <button
                               onClick={() => handleFollowUpAction('summarize')}
                               disabled={streaming}
-                              className="px-2.5 py-1 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] text-[11px] font-medium transition-colors cursor-pointer disabled:opacity-50"
+                              className="px-2 py-1 rounded-[2px] border border-stone-900 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 font-mono text-[10px] font-bold uppercase transition-colors cursor-pointer disabled:opacity-50"
                             >
-                              Summarize
+                              [ SUMMARIZE ]
                             </button>
                           </div>
 
@@ -729,7 +726,7 @@ export default function Chat() {
                               navigator.clipboard.writeText(m.content);
                               toast.info('Copied', 'Explanation copied to clipboard');
                             }}
-                            className="p-1 text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors cursor-pointer ml-auto"
+                            className="p-1 text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 transition-colors cursor-pointer ml-auto"
                             title="Copy explanation"
                           >
                             <Copy size={13} />
@@ -745,18 +742,18 @@ export default function Chat() {
             <div ref={bottomRef} className="h-2" />
           </div>
 
-          {/* 3. Professional Composer Dock */}
-          <div className="p-3 sm:p-4 border-t border-[var(--color-border)] bg-[var(--color-surface)]">
+          {/* 3. Outlined Technical Composer Dock */}
+          <div className="p-3 sm:p-4 border-t-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-50 dark:bg-stone-900">
             <div className="max-w-3xl mx-auto space-y-2">
               
-              {/* Active Grounding Context Pills */}
+              {/* Active Grounding Context Bar */}
               <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                <span className="text-[11px] font-medium text-[var(--color-text-muted)] mr-1">
-                  Context:
+                <span className="font-mono text-[10px] font-bold uppercase text-stone-500 mr-1">
+                  CONTEXT:
                 </span>
                 {selectedDocIds.length === 0 ? (
-                  <span className="text-xs text-[var(--color-text-muted)] italic">
-                    General study mode (no document attached)
+                  <span className="font-mono text-[11px] text-stone-500 italic">
+                    [ GENERAL TUTOR // NO DOCUMENT ATTACHED ]
                   </span>
                 ) : (
                   selectedDocIds.map((id) => {
@@ -764,14 +761,14 @@ export default function Chat() {
                     return (
                       <span
                         key={id}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] font-mono text-[10px] font-semibold bg-stone-200 dark:bg-stone-800 text-stone-900 dark:text-stone-100 border border-stone-900 dark:border-stone-700"
                       >
-                        <FileText size={11} />
-                        <span className="max-w-[140px] truncate">{doc?.title || 'Document'}</span>
+                        <FileText size={10} />
+                        <span className="max-w-[140px] truncate">{doc?.title || 'DOCUMENT'}</span>
                         <button
                           type="button"
                           onClick={() => toggleDoc(id)}
-                          className="hover:opacity-75 transition-opacity cursor-pointer ml-0.5"
+                          className="hover:text-red-600 transition-colors cursor-pointer ml-0.5"
                           title="Remove from context"
                         >
                           <X size={10} />
@@ -788,21 +785,20 @@ export default function Chat() {
                     setIsSidePanelOpen(true);
                     setSidePanelTab('sources');
                   }}
-                  className="inline-flex items-center gap-1 text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors cursor-pointer px-1 py-0.5"
+                  className="inline-flex items-center gap-1 font-mono text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors cursor-pointer px-1 py-0.5"
                 >
-                  <Plus size={11} />
-                  <span>{selectedDocIds.length === 0 ? 'Attach document' : 'Add more'}</span>
+                  <Plus size={10} />
+                  <span>{selectedDocIds.length === 0 ? '[ + ATTACH READING ]' : '[ + ADD MORE ]'}</span>
                 </button>
               </div>
 
               {/* Textarea Input Container */}
-              <div className="relative flex items-end gap-2 p-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-hover)] focus-within:ring-1 focus-within:ring-[var(--color-primary)] focus-within:border-[var(--color-primary)] transition-all">
+              <div className="relative flex items-end gap-2 p-2 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-950 focus-within:shadow-[2px_2px_0px_#18181b] transition-all">
                 <textarea
                   ref={textareaRef}
                   value={input}
                   onChange={(e) => {
                     setInput(e.target.value);
-                    // auto-resize up to max-h-36
                     e.target.style.height = 'auto';
                     e.target.style.height = `${Math.min(e.target.scrollHeight, 144)}px`;
                   }}
@@ -814,12 +810,12 @@ export default function Chat() {
                   }}
                   placeholder={
                     selectedDocIds.length > 0
-                      ? `Ask a question grounded in ${activeDocTitles.slice(0, 2).join(', ')}${selectedDocIds.length > 2 ? '...' : ''}`
-                      : 'Ask a study question or request an explanation...'
+                      ? `Inquire about ${activeDocTitles.slice(0, 2).join(', ')}${selectedDocIds.length > 2 ? '...' : ''}`
+                      : 'Draft a study question or inquiry...'
                   }
                   disabled={streaming}
                   rows={1}
-                  className="flex-1 bg-transparent px-2 py-1 text-sm text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none resize-none max-h-36 min-h-[36px] leading-relaxed"
+                  className="flex-1 bg-transparent px-2 py-1 text-sm text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none resize-none max-h-36 min-h-[36px] leading-relaxed"
                 />
 
                 <Button
@@ -828,16 +824,16 @@ export default function Chat() {
                   onClick={() => sendMessage()}
                   disabled={streaming || !input.trim()}
                   isLoading={streaming}
-                  className="h-8 px-3 rounded-md mb-0.5 flex-shrink-0"
+                  className="h-8 px-3 rounded-[2px] mb-0.5 flex-shrink-0"
                 >
                   <Send size={13} className={input.trim() ? 'translate-x-0.5' : ''} />
                 </Button>
               </div>
 
-              {/* Composer Footnote */}
-              <div className="hidden sm:flex items-center justify-between px-1 text-[10px] text-[var(--color-text-muted)]">
-                <span>Press <kbd className="px-1 py-0.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded text-[9px]">Enter</kbd> to ask, <kbd className="px-1 py-0.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded text-[9px]">Shift+Enter</kbd> for newline</span>
-                <span>WisdomFlow AI Tutor · Grounded RAG</span>
+              {/* Composer Technical Footnote */}
+              <div className="hidden sm:flex items-center justify-between px-1 font-mono text-[10px] text-stone-500">
+                <span>PRESS <kbd className="px-1 py-0.2 bg-stone-200 dark:bg-stone-800 border border-stone-400 dark:border-stone-600 rounded-[2px]">ENTER</kbd> TO TRANSMIT, <kbd className="px-1 py-0.2 bg-stone-200 dark:bg-stone-800 border border-stone-400 dark:border-stone-600 rounded-[2px]">SHIFT+ENTER</kbd> FOR NEWLINE</span>
+                <span>WISDOMFLOW STUDY ENGINE // ACTIVE</span>
               </div>
             </div>
           </div>
@@ -846,46 +842,45 @@ export default function Chat() {
         {/* Right: Secondary Learning Context & History Panel */}
         {isSidePanelOpen && (
           <>
-            {/* Mobile / Tablet Backdrop Overlay */}
             <div
-              className="fixed inset-0 bg-slate-900/40 dark:bg-slate-950/60 z-30 lg:hidden backdrop-blur-xs transition-opacity"
+              className="fixed inset-0 bg-stone-900/50 z-30 lg:hidden backdrop-blur-xs transition-opacity"
               onClick={() => setIsSidePanelOpen(false)}
               aria-hidden="true"
             />
 
-            <aside className="fixed lg:static inset-y-0 right-0 z-40 w-full sm:w-85 lg:w-80 border-l border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none animate-in slide-in-from-right-4 duration-200">
+            <aside className="fixed lg:static inset-y-0 right-0 z-40 w-full sm:w-85 lg:w-80 border-l-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-50 dark:bg-stone-900 flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none animate-in slide-in-from-right-4 duration-150">
             
             {/* Panel Tab Switcher */}
-            <div className="h-11 px-3 border-b border-[var(--color-border)] flex items-center justify-between gap-1 flex-shrink-0">
+            <div className="h-11 px-3 border-b-[1.5px] border-stone-900 dark:border-stone-700 flex items-center justify-between gap-1 flex-shrink-0 bg-stone-100 dark:bg-stone-800">
               <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => setSidePanelTab('sources')}
-                  className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-[2px] font-mono text-[10px] font-bold uppercase transition-colors cursor-pointer border ${
                     sidePanelTab === 'sources'
-                      ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
-                      : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                      ? 'border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-[1px_1px_0px_#18181b]'
+                      : 'border-transparent text-stone-500 hover:text-stone-900 dark:hover:text-stone-100'
                   }`}
                 >
-                  Sources ({selectedDocIds.length})
+                  SOURCES ({selectedDocIds.length})
                 </button>
                 <button
                   type="button"
                   onClick={() => setSidePanelTab('history')}
-                  className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-[2px] font-mono text-[10px] font-bold uppercase transition-colors cursor-pointer border ${
                     sidePanelTab === 'history'
-                      ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
-                      : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                      ? 'border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-[1px_1px_0px_#18181b]'
+                      : 'border-transparent text-stone-500 hover:text-stone-900 dark:hover:text-stone-100'
                   }`}
                 >
-                  Sessions ({conversations.length})
+                  SESSIONS ({conversations.length})
                 </button>
               </div>
 
               <button
                 type="button"
                 onClick={() => setIsSidePanelOpen(false)}
-                className="p-1 text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors cursor-pointer"
+                className="p-1 text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 transition-colors cursor-pointer"
                 title="Close panel"
               >
                 <X size={14} />
@@ -896,27 +891,27 @@ export default function Chat() {
             {sidePanelTab === 'sources' && (
               <div className="flex-1 flex flex-col min-h-0">
                 {/* Search & Bulk Toggle */}
-                <div className="p-3 border-b border-[var(--color-border)] space-y-2">
+                <div className="p-3 border-b border-stone-200 dark:border-stone-800 space-y-2">
                   <div className="relative">
-                    <Search size={13} className="absolute left-2.5 top-2.5 text-[var(--color-text-muted)]" />
+                    <Search size={12} className="absolute left-2.5 top-2.5 text-stone-400" />
                     <input
                       type="text"
-                      placeholder="Filter documents..."
+                      placeholder="Filter readings..."
                       value={docSearchQuery}
                       onChange={(e) => setDocSearchQuery(e.target.value)}
-                      className="w-full pl-7 pr-3 py-1.5 text-xs rounded border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+                      className="w-full pl-7 pr-3 py-1 text-xs rounded-[2px] border border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-950 text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
                     />
                   </div>
 
                   {docs.length > 0 && (
-                    <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)] px-0.5">
-                      <span>{selectedDocIds.length} of {docs.length} selected</span>
+                    <div className="flex items-center justify-between font-mono text-[10px] text-stone-500 px-0.5">
+                      <span>{selectedDocIds.length} OF {docs.length} SELECTED</span>
                       <button
                         type="button"
                         onClick={selectAllDocs}
-                        className="text-[11px] text-[var(--color-primary)] hover:underline cursor-pointer font-medium"
+                        className="text-stone-900 dark:text-stone-100 underline cursor-pointer font-bold"
                       >
-                        {selectedDocIds.length === docs.length ? 'Deselect All' : 'Select All'}
+                        {selectedDocIds.length === docs.length ? 'DESELECT ALL' : 'SELECT ALL'}
                       </button>
                     </div>
                   )}
@@ -925,21 +920,21 @@ export default function Chat() {
                 {/* Documents List */}
                 <div className="flex-1 overflow-y-auto p-2 space-y-1">
                   {docs.length === 0 ? (
-                    <div className="text-center py-8 px-4 text-xs text-[var(--color-text-muted)] space-y-2">
-                      <FileText size={20} className="mx-auto opacity-50" />
-                      <p>No documents uploaded yet.</p>
+                    <div className="text-center py-8 px-4 text-xs text-stone-500 space-y-2">
+                      <FileText size={20} className="mx-auto opacity-40" />
+                      <p className="font-mono text-[11px]">NO READINGS CATALOGED</p>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => navigate('/documents')}
                         className="text-xs"
                       >
-                        Upload to Library
+                        ARCHIVE CATALOG
                       </Button>
                     </div>
                   ) : filteredDocs.length === 0 ? (
-                    <p className="text-center py-6 text-xs text-[var(--color-text-muted)]">
-                      No documents match &ldquo;{docSearchQuery}&rdquo;
+                    <p className="text-center py-6 font-mono text-xs text-stone-400">
+                      NO MATCHES FOUND
                     </p>
                   ) : (
                     filteredDocs.map((doc) => {
@@ -948,27 +943,25 @@ export default function Chat() {
                         <div
                           key={doc.id}
                           onClick={() => toggleDoc(doc.id)}
-                          className={`flex items-start gap-2.5 p-2.5 rounded-lg border transition-colors cursor-pointer select-none ${
+                          className={`flex items-start gap-2.5 p-2.5 rounded-[2px] border transition-all cursor-pointer select-none ${
                             isSelected
-                              ? 'border-[var(--color-primary)]/40 bg-[var(--color-primary)]/5'
-                              : 'border-transparent hover:bg-[var(--color-surface-hover)]'
+                              ? 'border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-800 shadow-[1px_1px_0px_#18181b]'
+                              : 'border-transparent hover:bg-stone-200/50 dark:hover:bg-stone-800/50'
                           }`}
                         >
-                          <div className="mt-0.5 text-[var(--color-primary)]">
-                            {isSelected ? <CheckSquare size={14} /> : <Square size={14} className="text-[var(--color-text-muted)]" />}
+                          <div className="mt-0.5 text-stone-900 dark:text-stone-100">
+                            {isSelected ? <CheckSquare size={13} /> : <Square size={13} className="text-stone-400" />}
                           </div>
 
                           <div className="min-w-0 flex-1">
-                            <p className={`text-xs truncate ${isSelected ? 'font-semibold text-[var(--color-text)]' : 'text-[var(--color-text-secondary)]'}`}>
+                            <p className={`text-xs truncate ${isSelected ? 'font-bold text-stone-900 dark:text-stone-100' : 'text-stone-700 dark:text-stone-300'}`}>
                               {doc.title}
                             </p>
-                            <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-[var(--color-text-muted)]">
-                              <span className="uppercase font-medium">
-                                {doc.file_type || 'DOC'}
-                              </span>
+                            <div className="flex items-center gap-1.5 mt-0.5 font-mono text-[9px] text-stone-500 uppercase">
+                              <span>{doc.file_type || 'DOC'}</span>
                               {doc.created_at && (
                                 <>
-                                  <span>•</span>
+                                  <span>//</span>
                                   <span>{formatRelativeTime(doc.created_at)}</span>
                                 </>
                               )}
@@ -985,25 +978,25 @@ export default function Chat() {
             {/* TAB 2: Session History */}
             {sidePanelTab === 'history' && (
               <div className="flex-1 flex flex-col min-h-0">
-                <div className="p-3 border-b border-[var(--color-border)] flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[var(--color-text)]">
-                    Recent Dialogues
+                <div className="p-3 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between bg-stone-100 dark:bg-stone-800">
+                  <span className="font-mono text-[10px] font-bold uppercase text-stone-900 dark:text-stone-100">
+                    PAST SESSIONS
                   </span>
                   <button
                     type="button"
                     onClick={startNewSession}
-                    className="text-xs text-[var(--color-primary)] hover:underline font-medium cursor-pointer"
+                    className="font-mono text-[10px] text-stone-900 dark:text-stone-100 underline font-bold cursor-pointer uppercase"
                   >
-                    + New
+                    + NEW
                   </button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-2 space-y-1">
                   {conversations.length === 0 ? (
-                    <div className="text-center py-8 px-4 text-xs text-[var(--color-text-muted)] space-y-1">
-                      <Clock size={18} className="mx-auto opacity-50" />
-                      <p>No past study sessions found.</p>
-                      <p className="text-[11px]">Your conversations are saved automatically.</p>
+                    <div className="text-center py-8 px-4 text-xs text-stone-500 space-y-1">
+                      <Clock size={16} className="mx-auto opacity-40" />
+                      <p className="font-mono text-[11px]">NO ARCHIVED SESSIONS</p>
+                      <p className="text-[10px]">Dialogues are archived automatically.</p>
                     </div>
                   ) : (
                     conversations.map((c) => {
@@ -1012,25 +1005,25 @@ export default function Chat() {
                         <div
                           key={c.id}
                           onClick={() => loadConversation(c.id)}
-                          className={`p-2.5 rounded-lg border transition-colors cursor-pointer select-none text-left ${
+                          className={`p-2.5 rounded-[2px] border transition-all cursor-pointer select-none text-left ${
                             isActive
-                              ? 'border-[var(--color-primary)]/40 bg-[var(--color-primary)]/10'
-                              : 'border-transparent hover:bg-[var(--color-surface-hover)]'
+                              ? 'border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-800 shadow-[1px_1px_0px_#18181b]'
+                              : 'border-transparent hover:bg-stone-200/50 dark:hover:bg-stone-800/50'
                           }`}
                         >
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] text-[var(--color-text-muted)] flex items-center gap-1">
-                              <Clock size={10} />
+                            <span className="font-mono text-[9px] text-stone-500 flex items-center gap-1 uppercase">
+                              <Clock size={9} />
                               {formatRelativeTime(c.created_at)}
                             </span>
                             {c.document_ids && c.document_ids.length > 0 && (
                               <Badge size="sm" variant="neutral">
-                                {c.document_ids.length} doc{c.document_ids.length > 1 ? 's' : ''}
+                                {c.document_ids.length} DOC
                               </Badge>
                             )}
                           </div>
-                          <p className={`text-xs truncate ${isActive ? 'font-semibold text-[var(--color-primary)]' : 'text-[var(--color-text)]'}`}>
-                            {c.title || 'Untitled Study Dialogue'}
+                          <p className={`text-xs truncate ${isActive ? 'font-bold text-stone-900 dark:text-stone-100' : 'text-stone-700 dark:text-stone-300'}`}>
+                            {c.title || 'Untitled Dialogue'}
                           </p>
                         </div>
                       );

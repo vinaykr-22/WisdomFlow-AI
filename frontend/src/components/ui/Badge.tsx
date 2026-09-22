@@ -15,37 +15,37 @@ export function Badge({
   ...props
 }: BadgeProps) {
   const sizeStyles = {
-    sm: 'text-[11px] px-2 py-0.5 font-medium gap-1.5',
-    md: 'text-xs px-2.5 py-1 font-medium gap-1.5',
+    sm: 'text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 font-semibold gap-1.5',
+    md: 'text-[11px] font-mono uppercase tracking-wider px-2 py-0.5 font-semibold gap-1.5',
   };
 
   const variantStyles = {
     primary:
-      'bg-indigo-50 text-indigo-700 border border-indigo-200/80 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/60',
+      'bg-stone-900 text-white border border-stone-900 dark:bg-stone-100 dark:text-stone-900 dark:border-stone-100',
     success:
-      'bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60',
+      'bg-emerald-50 text-emerald-900 border border-emerald-800/60 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-700',
     warning:
-      'bg-amber-50 text-amber-700 border border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60',
+      'bg-amber-50 text-amber-900 border border-amber-800/60 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-700',
     danger:
-      'bg-rose-50 text-rose-700 border border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60',
+      'bg-rose-50 text-rose-900 border border-rose-800/60 dark:bg-rose-950/50 dark:text-rose-300 dark:border-rose-700',
     info:
-      'bg-sky-50 text-sky-700 border border-sky-200/80 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800/60',
+      'bg-blue-50 text-blue-900 border border-blue-800/60 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-700',
     neutral:
-      'bg-slate-100 text-slate-700 border border-slate-200/80 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700/60',
+      'bg-stone-100 text-stone-800 border border-stone-400 dark:bg-stone-800 dark:text-stone-200 dark:border-stone-600',
   };
 
   const dotColors = {
-    primary: 'bg-indigo-500',
-    success: 'bg-emerald-500',
-    warning: 'bg-amber-500',
-    danger: 'bg-rose-500',
-    info: 'bg-sky-500',
-    neutral: 'bg-slate-400',
+    primary: 'bg-white dark:bg-stone-900',
+    success: 'bg-emerald-600 dark:bg-emerald-400',
+    warning: 'bg-amber-600 dark:bg-amber-400',
+    danger: 'bg-rose-600 dark:bg-rose-400',
+    info: 'bg-blue-600 dark:bg-blue-400',
+    neutral: 'bg-stone-600 dark:bg-stone-400',
   };
 
   return (
     <span
-      className={`inline-flex items-center rounded-md select-none ${sizeStyles[size]} ${variantStyles[variant]} ${className}`}
+      className={`inline-flex items-center rounded-[2px] select-none ${sizeStyles[size]} ${variantStyles[variant]} ${className}`}
       {...props}
     >
       {dot && <span className={`w-1.5 h-1.5 rounded-full ${dotColors[variant]}`} />}

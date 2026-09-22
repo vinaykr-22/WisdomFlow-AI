@@ -5,7 +5,6 @@ import {
   FileText,
   Trash2,
   UploadCloud,
-  File,
   Loader2,
   Search,
   ArrowLeft,
@@ -81,11 +80,11 @@ export default function Documents() {
       const { data } = await api.get('/documents');
       setDocs(data.documents || []);
     } catch {
-      toast.error('Failed to load documents');
+      toast.error('Failed to load document archive');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     loadDocs();
@@ -93,53 +92,95 @@ export default function Documents() {
 
   const selectedDoc = docs.find((d) => d.id === selectedDocId) || null;
 
-  // Reset workspace state when changing selected doc
+  // Load summary & podcast cache when selectedDoc changes
   useEffect(() => {
+    if (!selectedDoc) return;
+
+    let isMounted = true;
     setSummaryContent('');
     setSummaryImages([]);
     setPodcastUrl('');
     setPodcastScript([]);
-  }, [selectedDocId]);
 
-  const handleUpload = async (file?: File) => {
-    if (!file) return;
+    api
+      .get(`/summarize/${selectedDoc.id}`)
+      .then(({ data }) => {
+        if (!isMounted) return;
+        if (data.summary_text) {
+          setSummaryContent(data.summary_text);
+          setSummaryImages(data.images || []);
+        }
+      })
+      .catch(() => {});
+
+    api
+      .get(`/summarize/podcast/${selectedDoc.id}`)
+      .then(({ data }) => {
+        if (!isMounted) return;
+        if (data.audio_url) {
+          setPodcastUrl(data.audio_url);
+          setPodcastScript(data.script || []);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedDoc]);
+
+  // Polling for processing status if a doc is currently indexing
+  useEffect(() => {
+    const hasProcessingDocs = docs.some(
+      (d) => d.processing_status === 'uploaded' || d.processing_status === 'processing'
+    );
+    if (!hasProcessingDocs) return;
+
+    const interval = setInterval(() => {
+      loadDocs();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [docs, loadDocs]);
+
+  // Handle file uploads
+  const handleUploadFile = async (file: File) => {
+    const allowed = ['.pdf', '.docx', '.txt', '.pptx'];
+    const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (!allowed.includes(ext)) {
+      toast.error('Unsupported file format. Please upload PDF, DOCX, PPTX, or TXT.');
+      return;
+    }
 
     if (file.size > 20 * 1024 * 1024) {
-      toast.error('File exceeds 20MB limit', 'Please select a file under 20MB.');
+      toast.error('File size exceeds the 20MB limit.');
       return;
     }
 
     setUploading(true);
-    setProcessingStage('Uploading document to secure storage...');
+    setProcessingStage('Reading document stream...');
 
-    const form = new FormData();
-    form.append('file', file);
+    const formData = new FormData();
+    formData.append('file', file);
 
     try {
-      // Simulate real transparent stages
-      const stageTimer1 = setTimeout(() => setProcessingStage('Reading document & extracting text content...'), 800);
-      const stageTimer2 = setTimeout(() => setProcessingStage('Generating vector embeddings & indexing knowledge...'), 1800);
+      setProcessingStage('Indexing text and structuring chunks...');
+      const { data } = await api.post('/documents/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
 
-      await api.post('/documents/upload', form);
-
-      clearTimeout(stageTimer1);
-      clearTimeout(stageTimer2);
-      setProcessingStage('Document indexed and ready for study.');
-
-      toast.success('Document uploaded successfully');
-      await loadDocs();
+      toast.success('Document archived successfully');
       setIsUploadModalOpen(false);
-    } catch (e: any) {
-      toast.error(e.response?.data?.detail || e.message || 'Upload failed');
+      await loadDocs();
+
+      if (data.id) {
+        setSearchParams({ id: data.id });
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || 'Upload failed. Please try again.');
     } finally {
       setUploading(false);
       setProcessingStage('');
-    }
-  };
-
-  const onFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleUpload(e.target.files[0]);
     }
   };
 
@@ -158,23 +199,23 @@ export default function Documents() {
     e.stopPropagation();
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleUpload(e.dataTransfer.files[0]);
+      handleUploadFile(e.dataTransfer.files[0]);
     }
   };
 
-  const confirmDelete = async () => {
+  const handleDelete = async () => {
     if (!docToDelete) return;
     setDeleting(true);
     try {
       await api.delete(`/documents/${docToDelete.id}`);
-      setDocs((prev) => prev.filter((d) => d.id !== docToDelete.id));
+      toast.success('Document removed from archive');
       if (selectedDocId === docToDelete.id) {
         setSearchParams({});
       }
-      toast.success('Document deleted');
       setDocToDelete(null);
-    } catch {
-      toast.error('Failed to delete document');
+      await loadDocs();
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || 'Failed to remove document');
     } finally {
       setDeleting(false);
     }
@@ -183,18 +224,16 @@ export default function Documents() {
   const handleGenerateSummary = async () => {
     if (!selectedDoc) return;
     setGeneratingSummary(true);
-    setSummaryContent('');
-    setSummaryImages([]);
     try {
-      const { data } = await api.post('/summarize', {
+      const { data } = await api.post('/summarize/generate', {
         document_id: selectedDoc.id,
-        page_count: summaryDepth,
+        target_length: summaryDepth,
       });
-      setSummaryContent(data.content || '');
+      setSummaryContent(data.summary_text || '');
       setSummaryImages(data.images || []);
-      toast.success('Summary generated');
+      toast.success('Study notes generated');
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || 'Failed to generate summary');
+      toast.error(err.response?.data?.detail || 'Failed to generate study notes');
     } finally {
       setGeneratingSummary(false);
     }
@@ -211,20 +250,26 @@ export default function Documents() {
       });
       setPodcastUrl(data.audio_url || '');
       setPodcastScript(data.script || []);
-      toast.success('Podcast episode generated');
+      toast.success('Audio discussion generated');
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || 'Failed to generate podcast');
+      toast.error(err.response?.data?.detail || 'Failed to generate audio notes');
     } finally {
       setGeneratingPodcast(false);
     }
   };
 
-  const getFileIcon = (type: string) => {
+  const getFileBadge = (type: string) => {
     const t = type.toLowerCase();
-    if (t.includes('pdf')) return <FileText className="text-rose-500" size={17} />;
-    if (t.includes('doc')) return <FileText className="text-indigo-500" size={17} />;
-    if (t.includes('ppt')) return <FileText className="text-amber-500" size={17} />;
-    return <File className="text-slate-400" size={17} />;
+    let label = 'DOC';
+    if (t.includes('pdf')) label = 'PDF';
+    else if (t.includes('doc')) label = 'DOCX';
+    else if (t.includes('ppt')) label = 'PPTX';
+    else if (t.includes('txt')) label = 'TXT';
+    return (
+      <span className="font-mono text-[9px] font-bold uppercase px-1.5 py-0.5 border border-stone-900 dark:border-stone-600 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 rounded-[2px]">
+        {label}
+      </span>
+    );
   };
 
   const filteredDocs = docs.filter(
@@ -239,24 +284,22 @@ export default function Documents() {
   if (selectedDoc) {
     return (
       <div className="space-y-6 animate-in fade-in duration-150">
-        {/* Level 1: Document Context Navigation */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
-          <div className="flex items-center gap-3">
+        {/* Document Context Navigation Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b-[1.5px] border-stone-900 dark:border-stone-800">
+          <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => setSearchParams({})}
-              className="p-1.5 rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer select-none"
-              title="Back to all documents"
+              className="p-1.5 rounded-[2px] border border-stone-900 dark:border-stone-600 bg-white dark:bg-stone-800 text-stone-700 hover:text-stone-950 dark:text-stone-300 dark:hover:text-stone-100 transition-colors cursor-pointer select-none"
+              title="Back to archive"
             >
-              <ArrowLeft size={18} />
+              <ArrowLeft size={16} />
             </button>
 
-            <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded bg-slate-100 dark:bg-slate-800 flex-shrink-0">
-                {getFileIcon(selectedDoc.file_type)}
-              </div>
-              <div>
-                <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2">
-                  <span className="truncate max-w-[170px] sm:max-w-md md:max-w-lg">{selectedDoc.title}</span>
+            <div className="flex items-center gap-2.5 min-w-0">
+              {getFileBadge(selectedDoc.file_type)}
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-lg font-bold text-stone-950 dark:text-stone-50 tracking-tight flex items-center gap-2">
+                  <span className="truncate max-w-[200px] sm:max-w-md md:max-w-lg">{selectedDoc.title}</span>
                   <Badge
                     variant={
                       selectedDoc.processing_status === 'ready'
@@ -266,15 +309,14 @@ export default function Documents() {
                         : 'warning'
                     }
                     size="sm"
-                    dot
                   >
                     {selectedDoc.processing_status === 'ready'
-                      ? 'Ready'
-                      : selectedDoc.processing_status}
+                      ? 'INDEXED'
+                      : selectedDoc.processing_status.toUpperCase()}
                   </Badge>
                 </h1>
-                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
-                  {(selectedDoc.file_size / 1024 / 1024).toFixed(2)} MB · {selectedDoc.file_type.toUpperCase()} · Added{' '}
+                <p className="text-[11px] font-mono text-stone-500 mt-0.5">
+                  {(selectedDoc.file_size / 1024 / 1024).toFixed(2)} MB · ADDED{' '}
                   {new Date(selectedDoc.created_at).toLocaleDateString(undefined, {
                     month: 'short',
                     day: 'numeric',
@@ -287,170 +329,146 @@ export default function Documents() {
 
           <div className="flex items-center gap-2 pl-9 sm:pl-0">
             <Button
-              variant="outline"
+              variant="primary"
               size="sm"
               onClick={() => navigate(`/chat?docId=${selectedDoc.id}`)}
-              leftIcon={<MessageSquare size={14} />}
+              leftIcon={<MessageSquare size={13} />}
             >
-              Ask Tutor
+              Query Material
             </Button>
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={() => setDocToDelete(selectedDoc)}
-              className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400"
+              className="text-stone-500 hover:text-rose-700 dark:hover:text-rose-400"
               title="Delete document"
             >
-              <Trash2 size={16} />
+              <Trash2 size={14} />
             </Button>
           </div>
         </div>
 
-        {/* Level 2: Learning Workflow Segmented Tabs */}
-        <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-lg w-full sm:w-fit overflow-x-auto no-scrollbar border border-slate-200/60 dark:border-slate-800">
+        {/* Architectural Segmented Tabs */}
+        <div className="flex items-center gap-1.5 p-1 bg-stone-100 dark:bg-stone-900 rounded-[2px] w-full sm:w-fit overflow-x-auto no-scrollbar border border-stone-900 dark:border-stone-700">
           <button
             onClick={() => setActiveWorkspaceTab('summary')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer select-none flex items-center gap-1.5 flex-1 sm:flex-none justify-center whitespace-nowrap ${
+            className={`px-3 py-1.5 text-xs font-mono font-bold uppercase rounded-[2px] transition-all cursor-pointer select-none flex items-center gap-2 flex-1 sm:flex-none justify-center whitespace-nowrap ${
               activeWorkspaceTab === 'summary'
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                ? 'bg-white dark:bg-stone-800 text-stone-950 dark:text-stone-50 border border-stone-900 dark:border-stone-600 shadow-[1px_1px_0px_#18181b]'
+                : 'text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-stone-100'
             }`}
           >
-            <BookOpen size={14} className="flex-shrink-0" />
-            <span><span className="hidden sm:inline">Understand & </span>Summary</span>
+            <BookOpen size={13} />
+            <span>[ 01 // STUDY NOTES ]</span>
           </button>
           <button
             onClick={() => setActiveWorkspaceTab('podcast')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer select-none flex items-center gap-1.5 flex-1 sm:flex-none justify-center whitespace-nowrap ${
+            className={`px-3 py-1.5 text-xs font-mono font-bold uppercase rounded-[2px] transition-all cursor-pointer select-none flex items-center gap-2 flex-1 sm:flex-none justify-center whitespace-nowrap ${
               activeWorkspaceTab === 'podcast'
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                ? 'bg-white dark:bg-stone-800 text-stone-950 dark:text-stone-50 border border-stone-900 dark:border-stone-600 shadow-[1px_1px_0px_#18181b]'
+                : 'text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-stone-100'
             }`}
           >
-            <Headphones size={14} className="flex-shrink-0" />
-            <span><span className="hidden sm:inline">Listen & </span>Podcast</span>
+            <Headphones size={13} />
+            <span>[ 02 // AUDIO NOTES ]</span>
           </button>
           <button
             onClick={() => setActiveWorkspaceTab('practice')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer select-none flex items-center gap-1.5 flex-1 sm:flex-none justify-center whitespace-nowrap ${
+            className={`px-3 py-1.5 text-xs font-mono font-bold uppercase rounded-[2px] transition-all cursor-pointer select-none flex items-center gap-2 flex-1 sm:flex-none justify-center whitespace-nowrap ${
               activeWorkspaceTab === 'practice'
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                ? 'bg-white dark:bg-stone-800 text-stone-950 dark:text-stone-50 border border-stone-900 dark:border-stone-600 shadow-[1px_1px_0px_#18181b]'
+                : 'text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-stone-100'
             }`}
           >
-            <HelpCircle size={14} className="flex-shrink-0" />
-            <span><span className="hidden sm:inline">Practice & </span>Retain</span>
+            <HelpCircle size={13} />
+            <span>[ 03 // PRACTICE TOOLS ]</span>
           </button>
         </div>
 
-        {/* Tab 1: Summary Canvas */}
+        {/* Tab 1: Study Notes Canvas */}
         {activeWorkspaceTab === 'summary' && (
           <div className="space-y-6">
-            {/* Depth controls */}
+            {/* Depth Selector Panel */}
             <Card variant="default">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Select Summary Depth
+              <CardHeader className="pb-3 bg-stone-50/60 dark:bg-stone-800/40 border-b border-stone-200 dark:border-stone-800">
+                <CardTitle className="text-xs sm:text-sm font-mono font-bold uppercase tracking-wider">
+                  // STUDY NOTES SYNTHESIS
                 </CardTitle>
+                <CardDescription>
+                  Configure note depth and coverage for this document.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4 pt-0">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+              <CardContent className="pt-4 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {summaryDepthOptions.map((opt) => (
-                    <button
+                    <div
                       key={opt.value}
-                      type="button"
                       onClick={() => setSummaryDepth(opt.value)}
-                      className={`p-3 rounded-md border text-left transition-colors cursor-pointer ${
+                      className={`p-3 rounded-[2px] border-[1.5px] cursor-pointer transition-all select-none ${
                         summaryDepth === opt.value
-                          ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 dark:border-indigo-500'
-                          : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700'
+                          ? 'border-stone-900 bg-stone-900 text-white dark:border-stone-100 dark:bg-stone-100 dark:text-stone-900 shadow-[2px_2px_0px_#18181b]'
+                          : 'border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 hover:border-stone-600'
                       }`}
                     >
-                      <div className="text-xs font-semibold text-slate-900 dark:text-slate-100">
-                        {opt.label}
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-xs">{opt.label}</span>
+                        <span className={`text-[10px] font-mono ${summaryDepth === opt.value ? 'text-stone-300 dark:text-stone-700' : 'text-stone-500'}`}>
+                          {opt.wordCount}
+                        </span>
                       </div>
-                      <div className="text-[10px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-0.5">
-                        {opt.wordCount}
-                      </div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-normal">
+                      <p className={`text-[11px] leading-snug ${summaryDepth === opt.value ? 'text-stone-200 dark:text-stone-700' : 'text-stone-500 dark:text-stone-400'}`}>
                         {opt.desc}
                       </p>
-                    </button>
+                    </div>
                   ))}
                 </div>
 
-                <div className="flex items-center justify-end pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                <div className="flex items-center justify-between pt-2 border-t border-stone-200 dark:border-stone-800">
+                  <span className="text-[11px] font-mono text-stone-500">
+                    Target Depth: {summaryDepth} Pages Equivalent
+                  </span>
                   <Button
                     variant="primary"
                     size="sm"
                     onClick={handleGenerateSummary}
                     isLoading={generatingSummary}
+                    leftIcon={<BookOpen size={13} />}
                   >
-                    {summaryContent ? 'Regenerate Summary' : 'Generate Summary'}
+                    {summaryContent ? 'Regenerate Study Notes' : 'Generate Study Notes'}
                   </Button>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Structured Summary Output */}
+            {/* Rendered Notes Viewer */}
             {summaryContent ? (
               <div className="space-y-6">
-                <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-lg p-6 sm:p-8 space-y-6">
-                  {summaryContent.split('\n\n').map((block, idx) => {
-                    const trimmed = block.trim();
-                    if (!trimmed) return null;
-
-                    if (trimmed.startsWith('# ')) {
-                      return (
-                        <h2 key={idx} className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 pb-2 border-b border-slate-100 dark:border-slate-800">
-                          {trimmed.replace(/^#\s+/, '')}
-                        </h2>
-                      );
-                    }
-                    if (trimmed.startsWith('## ')) {
-                      return (
-                        <h3 key={idx} className="text-base font-semibold tracking-tight text-slate-800 dark:text-slate-100 mt-4 mb-2">
-                          {trimmed.replace(/^##\s+/, '')}
-                        </h3>
-                      );
-                    }
-                    if (trimmed.startsWith('### ')) {
-                      return (
-                        <h4 key={idx} className="text-sm font-semibold text-slate-700 dark:text-slate-200 mt-3 mb-1">
-                          {trimmed.replace(/^###\s+/, '')}
-                        </h4>
-                      );
-                    }
-
-                    // Key point / list detection
-                    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-                      const items = trimmed.split('\n');
-                      return (
-                        <ul key={idx} className="space-y-1.5 pl-4 list-disc text-slate-700 dark:text-slate-300 text-sm leading-relaxed">
-                          {items.map((it, i) => (
-                            <li key={i}>{it.replace(/^[-*]\s+/, '')}</li>
-                          ))}
-                        </ul>
-                      );
-                    }
-
-                    return (
-                      <p key={idx} className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                        {trimmed}
+                <div className="p-6 sm:p-8 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-[2px_2px_0px_#18181b] dark:shadow-[2px_2px_0px_#3f3f46]">
+                  <div className="pb-4 mb-6 border-b-[1.5px] border-stone-900 dark:border-stone-700 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-bold uppercase font-mono tracking-wider text-stone-900 dark:text-stone-100">
+                        // COMPREHENSIVE STUDY NOTES
+                      </h3>
+                      <p className="text-[11px] font-mono text-stone-500 mt-0.5">
+                        SOURCE: {selectedDoc.original_filename.toUpperCase()}
                       </p>
-                    );
-                  })}
+                    </div>
+                  </div>
+
+                  <div className="prose prose-stone dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans">
+                    {summaryContent}
+                  </div>
                 </div>
 
-                {/* Extracted visuals */}
+                {/* Extracted Visual Figures */}
                 {summaryImages.length > 0 && (
                   <div className="space-y-3">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                      <ImageIcon size={14} /> Extracted Visual Figures ({summaryImages.length})
+                    <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 flex items-center gap-2">
+                      <ImageIcon size={14} /> EXTRACTED FIGURES ({summaryImages.length})
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {summaryImages.map((img, i) => (
-                        <div key={i} className="rounded-lg border border-slate-200/80 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900">
+                        <div key={i} className="rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 overflow-hidden bg-white dark:bg-stone-900 p-2 shadow-[2px_2px_0px_#18181b]">
                           <img src={img} alt={`Diagram ${i + 1}`} className="w-full h-auto object-contain max-h-72" />
                         </div>
                       ))}
@@ -459,24 +477,26 @@ export default function Documents() {
                 )}
               </div>
             ) : (
-              <div className="p-8 text-center rounded-lg border border-dashed border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 space-y-2">
-                <BookOpen size={24} className="mx-auto text-slate-300 dark:text-slate-600" />
-                <p className="font-medium text-slate-700 dark:text-slate-300">No summary generated yet</p>
-                <p>Select your desired depth above and click "Generate Summary" to distill this document.</p>
+              <div className="p-8 text-center rounded-[2px] border-2 border-dashed border-stone-300 dark:border-stone-700 text-xs text-stone-500 space-y-2 font-mono">
+                <BookOpen size={24} className="mx-auto text-stone-400" />
+                <p className="font-bold text-stone-800 dark:text-stone-200">NO STUDY NOTES GENERATED YET</p>
+                <p>Select your desired synthesis depth above and click "Generate Study Notes".</p>
               </div>
             )}
           </div>
         )}
 
-        {/* Tab 2: Audio Podcast */}
+        {/* Tab 2: Audio Notes / Discussion */}
         {activeWorkspaceTab === 'podcast' && (
           <div className="space-y-6">
             <Card variant="default">
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardHeader className="flex flex-row items-center justify-between pb-3 bg-stone-50/60 dark:bg-stone-800/40 border-b border-stone-200 dark:border-stone-800">
                 <div>
-                  <CardTitle className="text-sm font-semibold">Audio Discussion</CardTitle>
+                  <CardTitle className="text-xs sm:text-sm font-mono font-bold uppercase tracking-wider">
+                    // DUAL-HOST AUDIO DISCUSSION
+                  </CardTitle>
                   <CardDescription>
-                    AI dual-host dialogue synthesizing the document concepts into conversational audio.
+                    Conversational dialogue synthesizing the key concepts into an audio episode.
                   </CardDescription>
                 </div>
                 <Button
@@ -484,33 +504,33 @@ export default function Documents() {
                   size="sm"
                   onClick={handleGeneratePodcast}
                   isLoading={generatingPodcast}
-                  leftIcon={<Headphones size={14} />}
+                  leftIcon={<Headphones size={13} />}
                 >
-                  {podcastUrl ? 'Regenerate Podcast' : 'Generate Podcast'}
+                  {podcastUrl ? 'Regenerate Audio' : 'Generate Audio Notes'}
                 </Button>
               </CardHeader>
 
               {podcastUrl && (
-                <CardContent className="space-y-4 pt-2 border-t border-slate-100 dark:border-slate-800/80">
-                  <audio controls src={podcastUrl} className="w-full h-10" />
+                <CardContent className="space-y-4 pt-4">
+                  <audio controls src={podcastUrl} className="w-full h-10 border border-stone-900 dark:border-stone-700 rounded-[2px]" />
 
                   {podcastScript.length > 0 && (
-                    <div className="space-y-2.5 pt-3">
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                        Conversation Script
+                    <div className="space-y-2.5 pt-3 border-t border-stone-200 dark:border-stone-800">
+                      <p className="text-[10px] font-mono font-bold text-stone-500 uppercase tracking-wider">
+                        // TRANSCRIPT LOG
                       </p>
-                      <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
+                      <div className="space-y-2 max-h-96 overflow-y-auto pr-2 font-mono text-xs">
                         {podcastScript.map((line, idx) => (
                           <div
                             key={idx}
-                            className={`p-3 rounded-md text-xs leading-relaxed ${
+                            className={`p-3 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 leading-relaxed ${
                               line.speaker === 'A'
-                                ? 'bg-slate-50 dark:bg-slate-800/50 text-slate-800 dark:text-slate-200 border border-slate-200/50 dark:border-slate-800'
-                                : 'bg-indigo-50/50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-200 border border-indigo-100/60 dark:border-indigo-900/40 ml-4'
+                                ? 'bg-stone-100 dark:bg-stone-800/70 text-stone-900 dark:text-stone-100'
+                                : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 ml-4'
                             }`}
                           >
-                            <span className="font-bold text-[10px] uppercase tracking-wider block mb-0.5 opacity-70">
-                              Host {line.speaker}
+                            <span className="font-bold text-[10px] uppercase tracking-wider block mb-0.5 text-stone-500">
+                              [SPEAKER {line.speaker}]
                             </span>
                             {line.text}
                           </div>
@@ -522,9 +542,9 @@ export default function Documents() {
               )}
 
               {!podcastUrl && !generatingPodcast && (
-                <CardContent className="pt-2">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Click "Generate Podcast" to create an audio study episode with dual-host narration based on this document.
+                <CardContent className="pt-4">
+                  <p className="text-xs font-mono text-stone-500">
+                    Click "Generate Audio Notes" to create a paced study discussion based on this material.
                   </p>
                 </CardContent>
               )}
@@ -537,60 +557,60 @@ export default function Documents() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card variant="interactive" onClick={() => navigate(`/quizzes?docId=${selectedDoc.id}`)}>
               <CardHeader>
-                <div className="w-8 h-8 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-1">
-                  <HelpCircle size={18} />
+                <div className="w-7 h-7 rounded-[2px] border border-stone-900 dark:border-stone-600 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 flex items-center justify-center mb-1 font-mono font-bold">
+                  <HelpCircle size={15} />
                 </div>
-                <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                <CardTitle className="text-sm font-bold flex items-center justify-between">
                   <span>Take Knowledge Quiz</span>
-                  <ExternalLink size={14} className="text-slate-400" />
+                  <ExternalLink size={13} className="text-stone-400" />
                 </CardTitle>
                 <CardDescription>
-                  Generate multiple-choice questions to test your comprehension and identify retention gaps.
+                  Generate multiple-choice questions to evaluate retention and identify weak points.
                 </CardDescription>
               </CardHeader>
             </Card>
 
             <Card variant="interactive" onClick={() => navigate(`/flashcards?docId=${selectedDoc.id}`)}>
               <CardHeader>
-                <div className="w-8 h-8 rounded-md bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-1">
-                  <Layers size={18} />
+                <div className="w-7 h-7 rounded-[2px] border border-stone-900 dark:border-stone-600 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 flex items-center justify-center mb-1 font-mono font-bold">
+                  <Layers size={15} />
                 </div>
-                <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                <CardTitle className="text-sm font-bold flex items-center justify-between">
                   <span>Study Flashcards</span>
-                  <ExternalLink size={14} className="text-slate-400" />
+                  <ExternalLink size={13} className="text-stone-400" />
                 </CardTitle>
                 <CardDescription>
-                  Review active-recall study cards generated directly from the key terms in this document.
+                  Review active-recall index cards generated directly from key definitions.
                 </CardDescription>
               </CardHeader>
             </Card>
 
             <Card variant="interactive" onClick={() => navigate(`/roadmap?docId=${selectedDoc.id}`)}>
               <CardHeader>
-                <div className="w-8 h-8 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1">
-                  <Map size={18} />
+                <div className="w-7 h-7 rounded-[2px] border border-stone-900 dark:border-stone-600 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 flex items-center justify-center mb-1 font-mono font-bold">
+                  <Map size={15} />
                 </div>
-                <CardTitle className="text-sm font-semibold flex items-center justify-between">
-                  <span>Build Learning Roadmap</span>
-                  <ExternalLink size={14} className="text-slate-400" />
+                <CardTitle className="text-sm font-bold flex items-center justify-between">
+                  <span>Build Curriculum Blueprint</span>
+                  <ExternalLink size={13} className="text-stone-400" />
                 </CardTitle>
                 <CardDescription>
-                  Transform this document into a structured curriculum tree with prerequisites and minute estimates.
+                  Transform this document into a structured curriculum tree with milestones.
                 </CardDescription>
               </CardHeader>
             </Card>
 
             <Card variant="interactive" onClick={() => navigate(`/chat?docId=${selectedDoc.id}`)}>
               <CardHeader>
-                <div className="w-8 h-8 rounded-md bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center mb-1">
-                  <MessageSquare size={18} />
+                <div className="w-7 h-7 rounded-[2px] border border-stone-900 dark:border-stone-600 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 flex items-center justify-center mb-1 font-mono font-bold">
+                  <MessageSquare size={15} />
                 </div>
-                <CardTitle className="text-sm font-semibold flex items-center justify-between">
-                  <span>Ask RAG Study Chat</span>
-                  <ExternalLink size={14} className="text-slate-400" />
+                <CardTitle className="text-sm font-bold flex items-center justify-between">
+                  <span>Query in Tutor Workspace</span>
+                  <ExternalLink size={13} className="text-stone-400" />
                 </CardTitle>
                 <CardDescription>
-                  Chat with an AI tutor strictly grounded in the content and citations of this document.
+                  Ask questions strictly grounded in the content and exact citations of this text.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -601,18 +621,21 @@ export default function Documents() {
   }
 
   // ==========================================
-  // VIEW 1: DOCUMENT LIBRARY (TABLE/LIST)
+  // VIEW 1: DOCUMENT ARCHIVE CATALOG
   // ==========================================
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
+      {/* Header & Upload Action */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-3 pb-4 border-b-[1.5px] border-stone-900 dark:border-stone-800">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-            Document Library
+          <span className="text-[10px] font-mono font-bold uppercase text-stone-500 tracking-wider">
+            // DOCUMENT ARCHIVE
+          </span>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-stone-950 dark:text-stone-50">
+            Course Material Index
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Your uploaded study materials and indexed knowledge base ({docs.length} files)
+          <p className="text-xs font-mono text-stone-500 mt-0.5">
+            {docs.length} DOCUMENT(S) INDEXED IN LOCAL REPOSITORY
           </p>
         </div>
 
@@ -620,217 +643,191 @@ export default function Documents() {
           variant="primary"
           size="sm"
           onClick={() => setIsUploadModalOpen(true)}
-          leftIcon={<Plus size={15} />}
+          leftIcon={<Plus size={14} />}
         >
-          Upload Document
+          Upload Material
         </Button>
       </div>
 
       {/* Filter / Search Bar */}
-      {docs.length > 0 && (
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 max-w-md">
-            <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
-              <Search size={14} />
-            </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Filter documents by title..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15"
-            />
-          </div>
+      <div className="flex items-center justify-between gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Filter by title or filename..."
+            className="w-full pl-8 pr-3 py-1.5 text-xs font-mono bg-white dark:bg-stone-900 border-[1.5px] border-stone-900 dark:border-stone-700 rounded-[2px] focus:outline-none focus:border-stone-950 dark:focus:border-stone-100 placeholder-stone-400 text-stone-900 dark:text-stone-100"
+          />
         </div>
-      )}
+      </div>
 
-      {/* Document Library List / Table */}
-      {loading ? (
-        <div className="space-y-2">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 rounded-md bg-slate-100 dark:bg-slate-800/60 animate-pulse" />
-          ))}
-        </div>
-      ) : docs.length === 0 ? (
-        <Card variant="subtle" className="p-8 sm:p-12 text-center border-dashed">
-          <div className="w-12 h-12 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-800/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-3.5">
-            <UploadCloud size={24} />
-          </div>
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-1">
-            No documents in your library
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed mb-4">
-            Upload your lecture slides, PDFs, or notes to start generating summaries, quizzes, and learning roadmaps.
-          </p>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setIsUploadModalOpen(true)}
-            leftIcon={<UploadCloud size={14} />}
-          >
-            Upload your first document
-          </Button>
-        </Card>
-      ) : filteredDocs.length === 0 ? (
-        <div className="p-8 text-center text-xs text-slate-500 dark:text-slate-400">
-          No documents match "{searchQuery}".
-        </div>
-      ) : (
-        <div className="border border-slate-200/80 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800/80">
-          {filteredDocs.map((doc) => (
-            <div
-              key={doc.id}
-              className="p-3.5 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors group"
-            >
-              {/* Identity & Format */}
-              <div
-                onClick={() => setSearchParams({ id: doc.id })}
-                className="flex items-center gap-3 min-w-0 cursor-pointer flex-1"
+      {/* Archival Documents Table / List */}
+      <Card variant="default">
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="p-8 text-center text-xs font-mono text-stone-500 flex items-center justify-center gap-2">
+              <Loader2 size={15} className="animate-spin" />
+              <span>Scanning document index...</span>
+            </div>
+          ) : filteredDocs.length === 0 ? (
+            <div className="p-12 text-center text-xs font-mono text-stone-500 space-y-3">
+              <FileText size={24} className="mx-auto text-stone-400" />
+              <p className="font-bold text-stone-800 dark:text-stone-200">NO MATERIALS FOUND</p>
+              <p>Upload lecture notes, textbooks, or papers to begin studying.</p>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsUploadModalOpen(true)}
+                leftIcon={<UploadCloud size={13} />}
+                className="mt-2"
               >
-                <div className="p-2 rounded bg-slate-100 dark:bg-slate-800 flex-shrink-0">
-                  {getFileIcon(doc.file_type)}
-                </div>
-
-                <div className="truncate flex-1 min-w-0">
-                  <h4 className="text-xs font-semibold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate max-w-[180px] sm:max-w-md">
-                    {doc.title}
-                  </h4>
-                  <div className="flex items-center gap-2 text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
-                    <span>{doc.file_type.toUpperCase()}</span>
-                    <span>·</span>
-                    <span>{(doc.file_size / 1024 / 1024).toFixed(2)} MB</span>
-                    <span>·</span>
-                    <span>
-                      {new Date(doc.created_at).toLocaleDateString(undefined, {
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Status Badge & Study Action Toolbar */}
-              <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
-                <Badge
-                  variant={
-                    doc.processing_status === 'ready'
-                      ? 'success'
-                      : doc.processing_status === 'error'
-                      ? 'danger'
-                      : 'warning'
-                  }
-                  size="sm"
-                  dot
-                >
-                  {doc.processing_status === 'ready' ? 'Ready' : doc.processing_status}
-                </Badge>
-
-                {/* Direct Study Shortcuts */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSearchParams({ id: doc.id })}
-                >
-                  <span className="hidden sm:inline">Open Study Workspace</span>
-                  <span className="sm:hidden">Study</span>
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setDocToDelete(doc)}
-                  className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1.5"
-                  title="Delete document"
-                >
-                  <Trash2 size={15} />
-                </Button>
-              </div>
+                Upload Document
+              </Button>
             </div>
-          ))}
-        </div>
-      )}
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs font-mono border-collapse">
+                <thead>
+                  <tr className="border-b-[1.5px] border-stone-900 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/60 text-stone-500 text-[10px] uppercase font-bold tracking-wider">
+                    <th className="py-2.5 px-4">DOCUMENT / TITLE</th>
+                    <th className="py-2.5 px-4">FORMAT</th>
+                    <th className="py-2.5 px-4">SIZE</th>
+                    <th className="py-2.5 px-4">STATUS</th>
+                    <th className="py-2.5 px-4 text-right">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-200 dark:divide-stone-800 font-sans">
+                  {filteredDocs.map((doc) => (
+                    <tr
+                      key={doc.id}
+                      onClick={() => setSearchParams({ id: doc.id })}
+                      className="hover:bg-stone-100/50 dark:hover:bg-stone-800/40 transition-colors cursor-pointer group"
+                    >
+                      <td className="py-3 px-4 min-w-[200px]">
+                        <div className="flex items-center gap-2.5">
+                          {getFileBadge(doc.file_type)}
+                          <div className="truncate">
+                            <span className="font-bold text-xs text-stone-950 dark:text-stone-50 group-hover:underline">
+                              {doc.title}
+                            </span>
+                            <span className="block text-[10px] font-mono text-stone-400 truncate">
+                              {doc.original_filename}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 font-mono text-[11px] text-stone-600 dark:text-stone-400">
+                        {doc.file_type.toUpperCase()}
+                      </td>
+                      <td className="py-3 px-4 font-mono text-[11px] text-stone-600 dark:text-stone-400">
+                        {(doc.file_size / 1024 / 1024).toFixed(2)} MB
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge
+                          variant={
+                            doc.processing_status === 'ready'
+                              ? 'success'
+                              : doc.processing_status === 'error'
+                              ? 'danger'
+                              : 'warning'
+                          }
+                          size="sm"
+                        >
+                          {doc.processing_status.toUpperCase()}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setSearchParams({ id: doc.id })}
+                          >
+                            Open Workspace
+                          </Button>
+                          <button
+                            type="button"
+                            onClick={() => setDocToDelete(doc)}
+                            className="p-1.5 text-stone-400 hover:text-rose-700 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                            title="Delete"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Upload Modal with Multi-Stage Progress */}
+      {/* Upload Document Modal */}
       <Modal
         isOpen={isUploadModalOpen}
-        onClose={() => {
-          if (!uploading) setIsUploadModalOpen(false);
-        }}
-        title="Upload Study Material"
-        description="Add lecture slides, textbook chapters, or notes to your knowledge base."
-        size="md"
+        onClose={() => !uploading && setIsUploadModalOpen(false)}
+        title="// ARCHIVE NEW MATERIAL"
       >
         <div className="space-y-4">
           <div
-            className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-              dragActive
-                ? 'border-indigo-500 bg-indigo-50/40 dark:bg-indigo-950/30'
-                : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-600'
-            }`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
             onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`p-8 text-center border-2 border-dashed rounded-[2px] cursor-pointer transition-all ${
+              dragActive
+                ? 'border-stone-900 bg-stone-100 dark:border-stone-100 dark:bg-stone-800'
+                : 'border-stone-400 dark:border-stone-700 hover:border-stone-900 dark:hover:border-stone-300'
+            }`}
           >
-            {uploading ? (
-              <div className="flex flex-col items-center justify-center space-y-3 py-2">
-                <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400" size={28} />
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                    {processingStage || 'Processing document...'}
-                  </p>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                    Extracting text and preparing vector index
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center space-y-2 pointer-events-none">
-                <div className="p-2.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 mb-1">
-                  <UploadCloud size={20} />
-                </div>
-                <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                  Click to browse or drop your document here
-                </p>
-                <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                  Supported formats: PDF, DOCX, PPTX, TXT (Maximum 20MB)
-                </p>
-              </div>
-            )}
-
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.docx,.pptx,.txt"
-              onChange={onFileInput}
-              disabled={uploading}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              accept=".pdf,.docx,.txt,.pptx"
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  handleUploadFile(e.target.files[0]);
+                }
+              }}
             />
+
+            <UploadCloud size={28} className="mx-auto mb-2 text-stone-700 dark:text-stone-300" />
+            <p className="text-xs font-bold text-stone-900 dark:text-stone-100">
+              CLICK OR DRAG FILE HERE
+            </p>
+            <p className="text-[10px] font-mono text-stone-500 mt-1">
+              SUPPORTED: PDF, DOCX, PPTX, TXT (MAX 20MB)
+            </p>
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 pt-2">
-            <span>Security: Files are private to your account</span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={uploading}
-              onClick={() => setIsUploadModalOpen(false)}
-            >
-              Cancel
-            </Button>
-          </div>
+          {uploading && (
+            <div className="p-3 bg-stone-100 dark:bg-stone-800 rounded-[2px] border border-stone-900 dark:border-stone-700 text-xs font-mono flex items-center gap-2">
+              <Loader2 size={14} className="animate-spin text-stone-700 dark:text-stone-300" />
+              <span>{processingStage || 'Processing file stream...'}</span>
+            </div>
+          )}
         </div>
       </Modal>
 
-      {/* Custom Deletion Confirmation Modal */}
+      {/* Delete Confirmation Modal */}
       <Modal
-        isOpen={Boolean(docToDelete)}
-        onClose={() => setDocToDelete(null)}
-        title="Delete Document"
-        size="sm"
-        footer={
-          <>
+        isOpen={!!docToDelete}
+        onClose={() => !deleting && setDocToDelete(null)}
+        title="// CONFIRM DELETION"
+      >
+        <div className="space-y-4 text-xs font-mono">
+          <p className="text-stone-700 dark:text-stone-300 leading-relaxed font-sans">
+            Are you sure you want to permanently delete{' '}
+            <strong className="text-stone-950 dark:text-stone-50">"{docToDelete?.title}"</strong> from your study archive?
+          </p>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-200 dark:border-stone-800">
             <Button
               variant="outline"
               size="sm"
@@ -843,16 +840,12 @@ export default function Documents() {
               variant="danger"
               size="sm"
               isLoading={deleting}
-              onClick={confirmDelete}
+              onClick={handleDelete}
             >
-              Confirm Delete
+              Delete Document
             </Button>
-          </>
-        }
-      >
-        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-          Are you sure you want to delete <span className="font-semibold text-slate-900 dark:text-slate-100">"{docToDelete?.title}"</span>? This will remove its vectors and any generated summaries.
-        </p>
+          </div>
+        </div>
       </Modal>
     </div>
   );

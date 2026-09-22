@@ -39,10 +39,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   );
 
   const icons = {
-    success: <CheckCircle2 className="text-emerald-500 flex-shrink-0" size={18} />,
-    error: <AlertCircle className="text-rose-500 flex-shrink-0" size={18} />,
-    warning: <AlertTriangle className="text-amber-500 flex-shrink-0" size={18} />,
-    info: <Info className="text-sky-500 flex-shrink-0" size={18} />,
+    success: <CheckCircle2 className="text-emerald-600 dark:text-emerald-400 flex-shrink-0" size={16} />,
+    error: <AlertCircle className="text-rose-600 dark:text-rose-400 flex-shrink-0" size={16} />,
+    warning: <AlertTriangle className="text-amber-600 dark:text-amber-400 flex-shrink-0" size={16} />,
+    info: <Info className="text-stone-700 dark:text-stone-300 flex-shrink-0" size={16} />,
+  };
+
+  const typeLabels = {
+    success: 'SUCCESS',
+    error: 'SYSTEM NOTICE',
+    warning: 'WARNING',
+    info: 'TELEMETRY',
   };
 
   return (
@@ -52,25 +59,31 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {/* Toast container */}
       <div
         aria-live="polite"
-        className="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none"
+        className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"
       >
         {toasts.map((t) => (
           <div
             key={t.id}
-            className="pointer-events-auto flex items-start gap-3 p-3.5 bg-white dark:bg-slate-900 rounded-lg border border-slate-200/90 dark:border-slate-800 shadow-md animate-in slide-in-from-bottom-2 duration-150"
+            className="pointer-events-auto flex items-start gap-3 p-3 bg-white dark:bg-stone-900 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 shadow-[3px_3px_0px_#18181b] dark:shadow-[3px_3px_0px_#0c0a09] animate-in slide-in-from-bottom-2 duration-150"
           >
-            {icons[t.type]}
+            <div className="mt-0.5">{icons[t.type]}</div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">{t.title}</p>
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono text-[9px] font-bold text-stone-500 uppercase tracking-wider">
+                  [{typeLabels[t.type]}]
+                </span>
+                <p className="text-xs font-bold text-stone-900 dark:text-stone-100">{t.title}</p>
+              </div>
               {t.message && (
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-normal">{t.message}</p>
+                <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5 leading-normal">{t.message}</p>
               )}
             </div>
             <button
               onClick={() => removeToast(t.id)}
-              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 rounded cursor-pointer"
+              className="text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 p-0.5 rounded-[2px] cursor-pointer"
+              aria-label="Dismiss Notification"
             >
-              <X size={14} />
+              <X size={13} />
             </button>
           </div>
         ))}

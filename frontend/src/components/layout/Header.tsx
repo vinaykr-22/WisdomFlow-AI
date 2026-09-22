@@ -14,17 +14,17 @@ export interface HeaderProps {
 }
 
 const routeTitles: Record<string, { section: string; title: string }> = {
-  '/dashboard': { section: 'Main', title: 'Dashboard' },
-  '/documents': { section: 'Main', title: 'Documents' },
-  '/roadmap': { section: 'Main', title: 'Roadmaps' },
-  '/summarize': { section: 'Main', title: 'Summarizer' },
-  '/voice-tutor': { section: 'Main', title: 'Voice Tutor' },
-  '/chat': { section: 'Main', title: 'AI Tutor' },
-  '/quizzes': { section: 'Study', title: 'Quizzes' },
-  '/flashcards': { section: 'Study', title: 'Flashcards' },
-  '/revision': { section: 'Study', title: 'Revision' },
-  '/progress': { section: 'Study', title: 'Progress' },
-  '/search': { section: 'Utility', title: 'Search' },
+  '/dashboard': { section: 'WORKSPACE', title: 'DASHBOARD' },
+  '/documents': { section: 'WORKSPACE', title: 'DOCUMENTS' },
+  '/roadmap': { section: 'WORKSPACE', title: 'ROADMAPS' },
+  '/summarize': { section: 'WORKSPACE', title: 'SUMMARIZER' },
+  '/voice-tutor': { section: 'WORKSPACE', title: 'VOICE TUTOR' },
+  '/chat': { section: 'WORKSPACE', title: 'TUTOR WORKSPACE' },
+  '/quizzes': { section: 'STUDY', title: 'QUIZZES' },
+  '/flashcards': { section: 'STUDY', title: 'FLASHCARDS' },
+  '/revision': { section: 'STUDY', title: 'REVISION' },
+  '/progress': { section: 'STUDY', title: 'PROGRESS' },
+  '/search': { section: 'INDEX', title: 'SEARCH' },
 };
 
 export function Header({
@@ -38,69 +38,69 @@ export function Header({
   const user = useAuthStore((s) => s.user);
 
   const currentRouteInfo = routeTitles[location.pathname] || {
-    section: 'WisdomFlow',
-    title: 'Workspace',
+    section: 'WORKSPACE',
+    title: 'STUDY SESSION',
   };
 
   return (
-    <header className="h-14 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xs border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between px-3 sm:px-6 z-20 flex-shrink-0 gap-2">
-      {/* Left: Mobile Drawer Trigger & Clean Breadcrumb */}
-      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+    <header className="h-14 bg-[#fcfbf9] dark:bg-[#111215] border-b-[1.5px] border-stone-900 dark:border-stone-800 flex items-center justify-between px-3.5 sm:px-6 z-20 flex-shrink-0 gap-3 select-none">
+      {/* Left: Mobile Drawer Trigger & Technical Breadcrumb */}
+      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
         <button
           type="button"
           onClick={onOpenMobileSidebar}
-          className="p-1.5 rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden cursor-pointer flex-shrink-0"
+          className="p-1.5 rounded-[2px] border border-stone-900 dark:border-stone-600 bg-white dark:bg-stone-800 text-stone-700 hover:text-stone-950 dark:text-stone-300 dark:hover:text-stone-100 lg:hidden cursor-pointer flex-shrink-0"
           aria-label="Open navigation menu"
         >
-          <Menu size={18} />
+          <Menu size={16} />
         </button>
 
-        <div className="flex items-center gap-1.5 text-xs select-none truncate">
-          <span className="text-slate-400 dark:text-slate-500 font-medium hidden md:inline">
-            {currentRouteInfo.section}
+        <div className="flex items-center gap-1.5 text-xs font-mono select-none truncate">
+          <span className="text-stone-500 dark:text-stone-400 font-bold hidden sm:inline">
+            [{currentRouteInfo.section}
           </span>
-          <span className="text-slate-300 dark:text-slate-600 hidden md:inline">/</span>
-          <span className="text-slate-800 dark:text-slate-200 font-semibold tracking-tight truncate">
-            {currentRouteInfo.title}
+          <span className="text-stone-400 dark:text-stone-600 hidden sm:inline">//</span>
+          <span className="text-stone-950 dark:text-stone-50 font-bold tracking-tight truncate">
+            {currentRouteInfo.title}]
           </span>
         </div>
       </div>
 
-      {/* Center: Responsive global search */}
-      <div className="flex-1 max-w-[200px] sm:max-w-xs md:max-w-sm mx-1 sm:mx-4">
+      {/* Center: High-contrast technical query field */}
+      <div className="flex-1 max-w-[220px] sm:max-w-xs md:max-w-sm mx-1 sm:mx-4">
         <form onSubmit={onSubmitSearch} className="relative">
-          <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+          <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-stone-500">
             <Search size={13} />
           </div>
           <input
             type="text"
             value={headerQuery}
             onChange={(e) => setHeaderQuery(e.target.value)}
-            placeholder="Search..."
-            className="w-full pl-7 sm:pl-8 pr-2 sm:pr-8 py-1.5 text-xs bg-slate-100/70 dark:bg-slate-800/70 border border-transparent rounded-md focus:bg-white dark:focus:bg-slate-900 focus:border-slate-300 dark:focus:border-slate-700 focus:outline-none transition-colors placeholder-slate-400 dark:placeholder-slate-500 text-slate-800 dark:text-slate-200"
+            placeholder="Search index..."
+            className="w-full pl-8 pr-8 py-1.5 text-xs font-mono bg-white dark:bg-stone-900 border-[1.5px] border-stone-900 dark:border-stone-700 rounded-[2px] shadow-[1px_1px_0px_#18181b] dark:shadow-[1px_1px_0px_#3f3f46] focus:outline-none focus:border-stone-950 dark:focus:border-stone-100 placeholder-stone-400 dark:placeholder-stone-500 text-stone-900 dark:text-stone-100"
           />
-          <kbd className="hidden sm:inline-flex items-center absolute right-2 top-1/2 -translate-y-1/2 px-1 text-[10px] text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded font-mono select-none">
+          <kbd className="hidden sm:inline-flex items-center absolute right-2 top-1/2 -translate-y-1/2 px-1 text-[9px] text-stone-500 bg-stone-100 dark:bg-stone-800 border border-stone-400 dark:border-stone-600 rounded-[2px] font-mono select-none">
             ↵
           </kbd>
         </form>
       </div>
 
-      {/* Right: Controls (Theme toggle + Level pill) */}
-      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+      {/* Right: Technical Level indicator & Theme toggle */}
+      <div className="flex items-center gap-2 flex-shrink-0">
         {user?.level && (
-          <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 px-2 py-0.5 rounded">
-            Level {user.level}
+          <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono font-bold uppercase text-stone-900 dark:text-stone-100 bg-white dark:bg-stone-900 border-[1.5px] border-stone-900 dark:border-stone-600 px-2 py-0.5 rounded-[2px] shadow-[1px_1px_0px_#18181b] dark:shadow-[1px_1px_0px_#3f3f46]">
+            LVL.{user.level}
           </span>
         )}
 
-        <Tooltip content={isDark ? 'Light mode' : 'Dark mode'}>
+        <Tooltip content={isDark ? 'Light drafting canvas' : 'Dark drafting canvas'}>
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-1.5 rounded-md text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer select-none"
+            className="w-7.5 h-7.5 flex items-center justify-center rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-600 bg-white dark:bg-stone-900 text-stone-700 hover:text-stone-950 dark:text-stone-300 dark:hover:text-stone-100 shadow-[1px_1px_0px_#18181b] dark:shadow-[1px_1px_0px_#3f3f46] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-transform cursor-pointer select-none"
             aria-label="Toggle theme"
           >
-            {isDark ? <Sun size={16} /> : <Moon size={16} />}
+            {isDark ? <Sun size={14} /> : <Moon size={14} />}
           </button>
         </Tooltip>
       </div>

@@ -258,23 +258,23 @@ export default function Flashcards() {
     return (
       <PageContainer
         title={title}
-        description="Active recall practice. Reveal the answer and assess your retention."
+        description="Active recall practice. Reveal response to verify conceptual retention."
         actions={
           <div className="flex items-center gap-2">
             <Button
               size="sm"
               variant="outline"
               onClick={() => setView('grid')}
-              leftIcon={<LayoutGrid size={14} />}
+              leftIcon={<LayoutGrid size={13} />}
             >
-              Deck Overview
+              DECK OVERVIEW
             </Button>
             <Button
               size="sm"
               variant="ghost"
               onClick={() => setView('list')}
             >
-              All Decks
+              ALL DECKS
             </Button>
           </div>
         }
@@ -283,17 +283,17 @@ export default function Flashcards() {
           
           {/* Progress Header Strip */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)]">
-              <span className="font-semibold text-[var(--color-text)]">
-                Card {currentIndex + 1} of {totalCards}
+            <div className="flex items-center justify-between font-mono text-[10px] text-stone-500 uppercase">
+              <span className="font-bold text-stone-900 dark:text-stone-100">
+                CARD {String(currentIndex + 1).padStart(2, '0')} // {String(totalCards).padStart(2, '0')}
               </span>
               <div className="flex items-center gap-3">
-                <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                  {masteredIds.size} mastered
+                <span className="font-bold text-stone-900 dark:text-stone-100">
+                  {masteredIds.size} MASTERED
                 </span>
                 {needsReviewIds.size > 0 && (
-                  <span className="text-amber-600 dark:text-amber-400 font-medium">
-                    {needsReviewIds.size} to review
+                  <span className="text-stone-500">
+                    {needsReviewIds.size} TO REVIEW
                   </span>
                 )}
               </div>
@@ -301,34 +301,33 @@ export default function Flashcards() {
             <Progress value={progressPct} size="sm" />
           </div>
 
-          {/* Central Serious Study Flashcard */}
+          {/* Physical Index Card */}
           <div
             onClick={() => setIsRevealed(!isRevealed)}
-            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all p-8 sm:p-12 min-h-[340px] flex flex-col justify-between cursor-pointer select-none relative group"
+            className="rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-[4px_4px_0px_#18181b] p-8 sm:p-12 min-h-[340px] flex flex-col justify-between cursor-pointer select-none relative group transition-all active:translate-x-[1px] active:translate-y-[1px]"
           >
-            {/* Top Card Controls */}
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
-                {isRevealed ? 'Answer' : 'Prompt / Concept'}
+            {/* Top Card Technical Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-stone-200 dark:border-stone-800">
+              <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-stone-500">
+                {isRevealed ? '[ TECHNICAL SOLUTION // ANSWER ]' : '[ QUERY // PROMPT ]'}
               </span>
 
               <div className="flex items-center gap-2">
-                {/* Bookmark Toggle */}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleBookmark(currentCard);
                   }}
-                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                  className={`p-1.5 rounded-[2px] border transition-colors cursor-pointer ${
                     currentCard.is_bookmarked
-                      ? 'text-amber-500 bg-amber-500/10'
-                      : 'text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-[var(--color-surface-hover)]'
+                      ? 'border-stone-900 dark:border-stone-700 bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900'
+                      : 'border-transparent text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
                   }`}
                   title={currentCard.is_bookmarked ? 'Bookmarked' : 'Bookmark card'}
                 >
                   <Bookmark
-                    size={16}
+                    size={14}
                     className={currentCard.is_bookmarked ? 'fill-current' : ''}
                   />
                 </button>
@@ -338,14 +337,14 @@ export default function Flashcards() {
             {/* Central Typography Area */}
             <div className="py-6 my-auto text-center space-y-4">
               {!isRevealed ? (
-                <div className="space-y-2 animate-in fade-in duration-200">
-                  <p className="text-xl sm:text-2xl font-semibold text-[var(--color-text)] leading-relaxed max-w-lg mx-auto">
+                <div className="space-y-2">
+                  <p className="text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100 leading-relaxed max-w-lg mx-auto font-serif">
                     {currentCard.front}
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3 animate-in fade-in duration-200">
-                  <p className="text-lg sm:text-xl text-[var(--color-text)] leading-relaxed max-w-lg mx-auto">
+                <div className="space-y-3">
+                  <p className="text-base sm:text-lg text-stone-800 dark:text-stone-200 leading-relaxed max-w-lg mx-auto font-sans">
                     {currentCard.back}
                   </p>
                 </div>
@@ -353,7 +352,7 @@ export default function Flashcards() {
             </div>
 
             {/* Bottom Hint / Flip Indicator */}
-            <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)] pt-4 border-t border-[var(--color-border)]">
+            <div className="flex items-center justify-between font-mono text-[10px] text-stone-500 pt-4 border-t border-stone-200 dark:border-stone-800">
               {currentCard.hint ? (
                 <button
                   type="button"
@@ -361,27 +360,27 @@ export default function Flashcards() {
                     e.stopPropagation();
                     setShowHint(!showHint);
                   }}
-                  className="inline-flex items-center gap-1.5 text-xs text-[var(--color-primary)] hover:underline cursor-pointer font-medium"
+                  className="inline-flex items-center gap-1.5 text-stone-900 dark:text-stone-100 underline cursor-pointer font-bold uppercase"
                 >
-                  <Lightbulb size={13} />
-                  <span>{showHint ? `Hint: ${currentCard.hint}` : 'Show Hint'}</span>
+                  <Lightbulb size={11} />
+                  <span>{showHint ? `HINT: ${currentCard.hint}` : 'REVEAL HINT'}</span>
                 </button>
               ) : (
                 <span />
               )}
 
-              <span className="flex items-center gap-1 text-[11px]">
-                {isRevealed ? <EyeOff size={13} /> : <Eye size={13} />}
-                <span>Click or Space to {isRevealed ? 'see prompt' : 'reveal answer'}</span>
+              <span className="flex items-center gap-1 uppercase">
+                {isRevealed ? <EyeOff size={11} /> : <Eye size={11} />}
+                <span>CLICK OR SPACE TO {isRevealed ? 'SEE PROMPT' : 'REVEAL ANSWER'}</span>
               </span>
             </div>
           </div>
 
           {/* Self-Assessment & Knowledge Retention Actions */}
           {isRevealed && (
-            <div className="p-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200">
-              <span className="text-xs font-semibold text-[var(--color-text-muted)] hidden sm:inline">
-                How well did you know this?
+            <div className="p-4 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-50 dark:bg-stone-900 flex items-center justify-between gap-3 shadow-[2px_2px_0px_#18181b]">
+              <span className="font-mono text-[10px] font-bold uppercase text-stone-500 hidden sm:inline">
+                EVALUATE RETENTION:
               </span>
 
               <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
@@ -389,10 +388,10 @@ export default function Flashcards() {
                   size="sm"
                   variant={needsReview ? 'primary' : 'outline'}
                   onClick={() => markNeedsReview(currentCard.id)}
-                  leftIcon={<RotateCcw size={13} />}
+                  leftIcon={<RotateCcw size={12} />}
                   className="flex-1 sm:flex-initial text-xs"
                 >
-                  Needs Practice
+                  NEEDS PRACTICE
                 </Button>
 
                 <Button
@@ -402,7 +401,7 @@ export default function Flashcards() {
                   leftIcon={<CheckCircle2 size={13} />}
                   className="flex-1 sm:flex-initial text-xs"
                 >
-                  Mastered
+                  MASTERED
                 </Button>
               </div>
             </div>
@@ -415,13 +414,14 @@ export default function Flashcards() {
               size="sm"
               onClick={() => advanceCard(-1)}
               disabled={currentIndex === 0}
-              leftIcon={<ArrowLeft size={14} />}
+              leftIcon={<ArrowLeft size={13} />}
+              className="font-mono text-xs"
             >
-              Previous
+              PREVIOUS
             </Button>
 
-            <div className="text-xs text-[var(--color-text-muted)] hidden sm:block">
-              Use <kbd className="px-1.5 py-0.5 rounded bg-[var(--color-surface-hover)] border border-[var(--color-border)] text-[10px]">Space</kbd> to flip, <kbd className="px-1.5 py-0.5 rounded bg-[var(--color-surface-hover)] border border-[var(--color-border)] text-[10px]">← / →</kbd> to navigate
+            <div className="font-mono text-[10px] text-stone-500 hidden sm:block uppercase">
+              USE <kbd className="px-1 py-0.2 rounded-[2px] bg-stone-200 dark:bg-stone-800 border border-stone-400">SPACE</kbd> TO FLIP, <kbd className="px-1 py-0.2 rounded-[2px] bg-stone-200 dark:bg-stone-800 border border-stone-400">← / →</kbd> TO NAVIGATE
             </div>
 
             <Button
@@ -429,9 +429,10 @@ export default function Flashcards() {
               size="sm"
               onClick={() => advanceCard(1)}
               disabled={currentIndex === totalCards - 1}
-              rightIcon={<ArrowRight size={14} />}
+              rightIcon={<ArrowRight size={13} />}
+              className="font-mono text-xs"
             >
-              Next Card
+              NEXT CARD
             </Button>
           </div>
         </div>
@@ -451,12 +452,12 @@ export default function Flashcards() {
               size="sm"
               variant="primary"
               onClick={() => setView('focus')}
-              leftIcon={<Maximize2 size={14} />}
+              leftIcon={<Maximize2 size={13} />}
             >
-              Study Focus Mode
+              FOCUS PRACTICE MODE
             </Button>
             <Button size="sm" variant="outline" onClick={() => setView('list')}>
-              All Decks
+              ALL DECKS
             </Button>
           </div>
         }
@@ -464,40 +465,41 @@ export default function Flashcards() {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {cards.map((card, idx) => (
-              <Card key={card.id} className="border-[var(--color-border)]">
-                <CardContent className="p-5 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[var(--color-text-muted)] uppercase">
-                      Card {idx + 1}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => toggleBookmark(card)}
-                      className={`p-1 rounded cursor-pointer ${
-                        card.is_bookmarked
-                          ? 'text-amber-500'
-                          : 'text-[var(--color-text-muted)] hover:text-amber-500'
-                      }`}
-                    >
-                      <Bookmark size={15} className={card.is_bookmarked ? 'fill-current' : ''} />
-                    </button>
-                  </div>
+              <div
+                key={card.id}
+                className="rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-[2px_2px_0px_#18181b] p-5 space-y-3"
+              >
+                <div className="flex items-center justify-between pb-2 border-b border-stone-200 dark:border-stone-800">
+                  <span className="font-mono text-[10px] font-bold text-stone-500 uppercase">
+                    CARD {String(idx + 1).padStart(2, '0')}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => toggleBookmark(card)}
+                    className={`p-1 rounded-[2px] cursor-pointer ${
+                      card.is_bookmarked
+                        ? 'text-stone-900 dark:text-stone-100'
+                        : 'text-stone-400 hover:text-stone-900'
+                    }`}
+                  >
+                    <Bookmark size={14} className={card.is_bookmarked ? 'fill-current' : ''} />
+                  </button>
+                </div>
 
-                  <div className="space-y-1">
-                    <span className="text-[11px] font-semibold text-[var(--color-text-muted)] uppercase">
-                      Prompt
-                    </span>
-                    <p className="text-sm font-semibold text-[var(--color-text)]">{card.front}</p>
-                  </div>
+                <div className="space-y-1">
+                  <span className="font-mono text-[9px] font-bold text-stone-500 uppercase">
+                    // PROMPT
+                  </span>
+                  <p className="text-sm font-bold text-stone-900 dark:text-stone-100 font-serif">{card.front}</p>
+                </div>
 
-                  <div className="pt-2 border-t border-[var(--color-border)] space-y-1">
-                    <span className="text-[11px] font-semibold text-[var(--color-text-muted)] uppercase">
-                      Answer
-                    </span>
-                    <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">{card.back}</p>
-                  </div>
-                </CardContent>
-              </Card>
+                <div className="pt-2 border-t border-dashed border-stone-200 dark:border-stone-800 space-y-1">
+                  <span className="font-mono text-[9px] font-bold text-stone-500 uppercase">
+                    // KEY SOLUTION
+                  </span>
+                  <p className="text-xs text-stone-700 dark:text-stone-300 leading-relaxed font-sans">{card.back}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -510,15 +512,15 @@ export default function Flashcards() {
     return (
       <PageContainer
         title="Flashcard Decks"
-        description="Active recall sets generated from your uploaded learning materials."
+        description="Active recall sets compiled from archived readings."
         actions={
           <Button
             size="sm"
             variant="primary"
             onClick={() => setView('create')}
-            leftIcon={<Plus size={14} />}
+            leftIcon={<Plus size={13} />}
           >
-            New Deck
+            NEW DECK
           </Button>
         }
       >
@@ -526,17 +528,17 @@ export default function Flashcards() {
           {setsList.length === 0 ? (
             <Card>
               <CardContent className="py-16 text-center space-y-4">
-                <div className="w-12 h-12 rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center mx-auto">
-                  <Layers size={24} />
+                <div className="w-12 h-12 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 flex items-center justify-center mx-auto shadow-[2px_2px_0px_#18181b]">
+                  <Layers size={20} />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-base font-bold text-[var(--color-text)]">No flashcards created yet</h3>
-                  <p className="text-xs text-[var(--color-text-muted)] max-w-sm mx-auto">
-                    Generate an interactive active-recall deck from your uploaded study materials.
+                  <h3 className="text-base font-bold text-stone-900 dark:text-stone-100 font-serif">No decks compiled yet</h3>
+                  <p className="text-xs text-stone-600 dark:text-stone-400 max-w-sm mx-auto">
+                    Synthesize an active-recall flashcard deck from your archived study materials.
                   </p>
                 </div>
                 <Button variant="primary" onClick={() => setView('create')}>
-                  Create First Deck
+                  CREATE FIRST DECK
                 </Button>
               </CardContent>
             </Card>
@@ -552,16 +554,16 @@ export default function Flashcards() {
                   <CardHeader>
                     <div className="flex items-center justify-between mb-1">
                       <Badge variant="primary" size="sm">
-                        {set.card_count} flashcards
+                        {set.card_count} CARDS
                       </Badge>
-                      <span className="text-xs text-[var(--color-text-muted)]">
+                      <span className="font-mono text-[10px] text-stone-500 uppercase">
                         {new Date(set.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </span>
                     </div>
-                    <CardTitle className="text-base font-bold line-clamp-1">{set.title}</CardTitle>
+                    <CardTitle className="text-base font-bold font-serif line-clamp-1">{set.title}</CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-0 flex items-center justify-between text-xs font-semibold text-[var(--color-primary)]">
-                    <span>Study Deck</span>
+                  <CardContent className="pt-0 flex items-center justify-between font-mono text-xs font-bold text-stone-900 dark:text-stone-100">
+                    <span>PRACTICE DECK</span>
                     <ArrowRight size={13} />
                   </CardContent>
                 </Card>
@@ -576,12 +578,12 @@ export default function Flashcards() {
   // 4. CREATE VIEW: Generate Deck
   return (
     <PageContainer
-      title="Flashcard Generator"
-      description="Synthesize key definitions, formulas, and concepts into an active-recall deck."
+      title="Flashcard Architect"
+      description="Extract key definitions, formulas, and concepts into an active-recall deck."
       actions={
         setsList.length > 0 ? (
-          <Button size="sm" variant="outline" onClick={() => setView('list')} leftIcon={<ChevronLeft size={14} />}>
-            My Decks ({setsList.length})
+          <Button size="sm" variant="outline" onClick={() => setView('list')} leftIcon={<ChevronLeft size={13} />}>
+            DECKS ({setsList.length})
           </Button>
         ) : undefined
       }
@@ -591,21 +593,21 @@ export default function Flashcards() {
           <CardHeader>
             <CardTitle>Configure Study Deck</CardTitle>
             <CardDescription>
-              Select source reading material and desired number of cards.
+              Select source reading material and designate card quantity.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
             {/* Document Select */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] flex items-center gap-1.5">
-                <FileText size={13} className="text-[var(--color-primary)]" /> Source Document
+              <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
+                <FileText size={12} /> [ SOURCE READING ]
               </label>
               <select
                 value={docId}
                 onChange={(e) => setDocId(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="w-full px-3 py-2 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-xs font-mono focus:outline-none shadow-[2px_2px_0px_#18181b]"
               >
-                <option value="">Choose document to synthesize...</option>
+                <option value="">SELECT ARCHIVED READING...</option>
                 {docs.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.title}
@@ -616,16 +618,16 @@ export default function Flashcards() {
 
             {/* Cards Count Select */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-                Number of Cards
+              <label className="font-mono text-[10px] font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+                CARD QUANTITY
               </label>
               <select
                 value={count}
                 onChange={(e) => setCount(Number(e.target.value))}
-                className="w-full px-3.5 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="w-full px-3 py-2 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-xs font-mono focus:outline-none shadow-[2px_2px_0px_#18181b]"
               >
                 <option value={5}>5 Cards (Focused review)</option>
-                <option value={10}>10 Cards (Standard)</option>
+                <option value={10}>10 Cards (Standard deck)</option>
                 <option value={15}>15 Cards (Comprehensive)</option>
                 <option value={20}>20 Cards (Deep drill)</option>
               </select>
@@ -638,10 +640,10 @@ export default function Flashcards() {
                 onClick={handleGenerate}
                 disabled={generating || !docId}
                 isLoading={generating}
-                className="w-full h-11 text-sm font-semibold"
-                leftIcon={!generating ? <Layers size={16} /> : undefined}
+                className="w-full h-10 text-xs font-mono font-bold"
+                leftIcon={!generating ? <Layers size={14} /> : undefined}
               >
-                {generating ? 'Extracting Core Concepts...' : 'Generate Flashcards'}
+                {generating ? 'SYNTHESIZING CONCEPTS...' : 'GENERATE FLASHCARDS'}
               </Button>
             </div>
           </CardContent>

@@ -71,74 +71,77 @@ export default function Revision() {
     const p = priority.toLowerCase();
     if (p === 'high') {
       return (
-        <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50">
-          High Priority
+        <span className="px-1.5 py-0.5 rounded-[2px] font-mono text-[9px] font-bold uppercase tracking-wider bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 border border-stone-900">
+          HIGH PRIORITY
         </span>
       );
     }
     if (p === 'medium') {
       return (
-        <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50">
-          Medium Priority
+        <span className="px-1.5 py-0.5 rounded-[2px] font-mono text-[9px] font-bold uppercase tracking-wider bg-stone-200 dark:bg-stone-800 text-stone-900 dark:text-stone-100 border border-stone-900 dark:border-stone-700">
+          MEDIUM PRIORITY
         </span>
       );
     }
     return (
-      <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50">
-        Standard Review
+      <span className="px-1.5 py-0.5 rounded-[2px] font-mono text-[9px] font-bold uppercase tracking-wider bg-stone-100 dark:bg-stone-900 text-stone-600 dark:text-stone-400 border border-stone-300 dark:border-stone-700">
+        STANDARD REVIEW
       </span>
     );
   };
 
   if (initialLoading) {
     return (
-      <div className="h-64 flex items-center justify-center text-xs text-slate-400 animate-pulse">
-        Loading revision schedule...
+      <div className="h-64 flex items-center justify-center font-mono text-xs text-stone-400">
+        LOADING REVISION MATRIX...
       </div>
     );
   }
 
   if (view === 'create') {
     return (
-      <div className="max-w-xl mx-auto space-y-6 animate-in fade-in duration-200 pt-6">
+      <div className="max-w-xl mx-auto space-y-6 pt-6">
         
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto border border-indigo-100 dark:border-indigo-900/40">
-            <Calendar size={20} />
+          <div className="w-10 h-10 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 flex items-center justify-center mx-auto shadow-[2px_2px_0px_#18181b]">
+            <Calendar size={18} />
           </div>
-          <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
-            Generate Spaced Revision Plan
+          <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-stone-500">
+            [ SCHEDULE ARCHITECT // SPACED REPETITION ]
+          </span>
+          <h1 className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight font-serif">
+            Synthesize Spaced Revision Plan
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-            WisdomFlow analyzes your quiz error patterns and study history to schedule prioritized topic reviews.
+          <p className="text-xs text-stone-600 dark:text-stone-400 max-w-sm mx-auto font-sans">
+            Analyzes your evaluation errors and review cadence to structure prioritized repetition sprints.
           </p>
         </div>
 
         {/* Plan Configuration Card */}
-        <div className="p-6 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-5">
+        <div className="p-6 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-[3px_3px_0px_#18181b] space-y-5">
           <div className="space-y-2">
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-              Select Schedule Horizon
+            <label className="block font-mono text-[10px] font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+              [ HORIZON PARAMETER ]
             </label>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setPlanType('daily')}
-                className={`p-3.5 rounded-lg border text-left transition-colors cursor-pointer flex flex-col justify-between ${
+                className={`p-3.5 rounded-[2px] border-[1.5px] text-left transition-all cursor-pointer flex flex-col justify-between ${
                   planType === 'daily'
-                    ? 'border-indigo-600 dark:border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200'
-                    : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300'
+                    ? 'border-stone-900 dark:border-stone-100 bg-stone-100 dark:bg-stone-800 shadow-[2px_2px_0px_#18181b]'
+                    : 'border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 hover:border-stone-900 dark:hover:border-stone-100'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <Clock size={16} className={planType === 'daily' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'} />
-                  {planType === 'daily' && <span className="w-2 h-2 rounded-full bg-indigo-600 dark:bg-indigo-400" />}
+                  <Clock size={16} className={planType === 'daily' ? 'text-stone-900 dark:text-stone-100' : 'text-stone-400'} />
+                  {planType === 'daily' && <span className="w-2 h-2 rounded-[1px] bg-stone-900 dark:bg-stone-100" />}
                 </div>
                 <div>
-                  <span className="block text-xs font-semibold">Daily Sprint</span>
-                  <span className="block text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    Targeted 30-60 min review session
+                  <span className="block font-mono text-xs font-bold uppercase text-stone-900 dark:text-stone-100">Daily Sprint</span>
+                  <span className="block text-[11px] text-stone-500 mt-0.5 font-sans">
+                    Targeted 30-60 min focused session
                   </span>
                 </div>
               </button>
@@ -146,19 +149,19 @@ export default function Revision() {
               <button
                 type="button"
                 onClick={() => setPlanType('weekly')}
-                className={`p-3.5 rounded-lg border text-left transition-colors cursor-pointer flex flex-col justify-between ${
+                className={`p-3.5 rounded-[2px] border-[1.5px] text-left transition-all cursor-pointer flex flex-col justify-between ${
                   planType === 'weekly'
-                    ? 'border-indigo-600 dark:border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200'
-                    : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300'
+                    ? 'border-stone-900 dark:border-stone-100 bg-stone-100 dark:bg-stone-800 shadow-[2px_2px_0px_#18181b]'
+                    : 'border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 hover:border-stone-900 dark:hover:border-stone-100'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <Calendar size={16} className={planType === 'weekly' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'} />
-                  {planType === 'weekly' && <span className="w-2 h-2 rounded-full bg-indigo-600 dark:bg-indigo-400" />}
+                  <Calendar size={16} className={planType === 'weekly' ? 'text-stone-900 dark:text-stone-100' : 'text-stone-400'} />
+                  {planType === 'weekly' && <span className="w-2 h-2 rounded-[1px] bg-stone-900 dark:bg-stone-100" />}
                 </div>
                 <div>
-                  <span className="block text-xs font-semibold">Weekly Schedule</span>
-                  <span className="block text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  <span className="block font-mono text-xs font-bold uppercase text-stone-900 dark:text-stone-100">Weekly Cycle</span>
+                  <span className="block text-[11px] text-stone-500 mt-0.5 font-sans">
                     Multi-day spaced repetition cycle
                   </span>
                 </div>
@@ -170,17 +173,17 @@ export default function Revision() {
             type="button"
             onClick={handleGenerate}
             disabled={loading}
-            className="w-full h-10 px-4 rounded-lg bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white text-xs font-semibold shadow-xs disabled:opacity-50 disabled:pointer-events-none transition-colors flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full h-10 px-4 rounded-[2px] bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-white dark:text-stone-900 font-mono text-xs font-bold uppercase shadow-[2px_2px_0px_#18181b] disabled:opacity-50 disabled:pointer-events-none transition-all flex items-center justify-center gap-2 cursor-pointer active:translate-x-[1px] active:translate-y-[1px]"
           >
             {loading ? (
               <>
-                <Loader2 size={15} className="animate-spin" />
-                <span>Synthesizing Adaptive Plan...</span>
+                <Loader2 size={14} className="animate-spin" />
+                <span>SYNTHESIZING ADAPTIVE SCHEDULE...</span>
               </>
             ) : (
               <>
-                <span>Generate Schedule</span>
-                <ArrowRight size={14} />
+                <span>COMPILE REVISION SCHEDULE</span>
+                <ArrowRight size={13} />
               </>
             )}
           </button>
@@ -190,9 +193,9 @@ export default function Revision() {
           <div className="text-center">
             <button
               onClick={() => setView('plan')}
-              className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+              className="font-mono text-xs text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 underline cursor-pointer uppercase"
             >
-              Return to previous plan ({plan.title})
+              [ RETURN TO ACTIVE SCHEDULE: {plan.title} ]
             </button>
           </div>
         )}
@@ -205,112 +208,112 @@ export default function Revision() {
   const items = plan.structure?.items || [];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-200">
+    <div className="max-w-4xl mx-auto space-y-6">
       
       {/* Top Banner Bar */}
-      <div className="p-4 sm:p-6 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-5 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-[var(--color-surface)] shadow-[2px_2px_0px_#18181b] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/40">
-              {plan.plan_type === 'daily' ? 'Daily Sprint' : 'Weekly Plan'}
+            <span className="font-mono text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-[2px] bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 border border-stone-900 dark:border-stone-700">
+              {plan.plan_type === 'daily' ? 'DAILY SPRINT' : 'WEEKLY CYCLE'}
             </span>
-            <span className="text-xs text-slate-400 dark:text-slate-500">
-              Generated {new Date(plan.created_at).toLocaleDateString(undefined, {
+            <span className="font-mono text-[10px] text-stone-500 uppercase">
+              // GENERATED {new Date(plan.created_at).toLocaleDateString(undefined, {
                 month: 'short',
                 day: 'numeric',
               })}
             </span>
           </div>
-          <h1 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100">
+          <h1 className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 font-serif">
             {plan.structure?.title || plan.title}
           </h1>
         </div>
 
         <div className="flex items-center gap-3">
           {plan.structure?.total_estimated_minutes > 0 && (
-            <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800">
-              <Clock size={14} className="text-slate-400" />
+            <div className="flex items-center gap-1.5 font-mono text-xs text-stone-900 dark:text-stone-100 px-2.5 py-1 rounded-[2px] border border-stone-900 dark:border-stone-700 bg-stone-100 dark:bg-stone-800">
+              <Clock size={13} className="text-stone-500" />
               <span>
-                ~{Math.round(plan.structure.total_estimated_minutes / 60)}h{' '}
-                {plan.structure.total_estimated_minutes % 60}m Total
+                ~{Math.round(plan.structure.total_estimated_minutes / 60)}H{' '}
+                {plan.structure.total_estimated_minutes % 60}M TOTAL
               </span>
             </div>
           )}
 
           <button
             onClick={() => setView('create')}
-            className="h-8 px-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="h-8 px-3 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 font-mono text-xs font-bold text-stone-900 dark:text-stone-100 transition-all flex items-center gap-1.5 cursor-pointer shadow-[1px_1px_0px_#18181b]"
           >
-            <RotateCcw size={13} />
-            <span>New Plan</span>
+            <RotateCcw size={12} />
+            <span>NEW SCHEDULE</span>
           </button>
         </div>
       </div>
 
       {/* Structured Chronological Agenda */}
-      <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden">
-        <div className="p-4 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            Topic Review Sequence ({items.length} Modules)
+      <div className="rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-[3px_3px_0px_#18181b] divide-y divide-stone-200 dark:divide-stone-800 overflow-hidden">
+        <div className="p-4 bg-stone-100 dark:bg-stone-800 border-b-[1.5px] border-stone-900 dark:border-stone-700 flex items-center justify-between">
+          <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+            SEQUENCE ARCHIVE // {items.length} MODULES
           </span>
-          <span className="text-[11px] text-slate-400">
-            Ordered by priority & spaced repetition urgency
+          <span className="font-mono text-[10px] text-stone-500 uppercase">
+            SORTED BY RETENTION PRIORITY
           </span>
         </div>
 
         {items.length === 0 ? (
-          <div className="p-8 text-center text-xs text-slate-400 dark:text-slate-500">
-            No revision items recorded for this plan.
+          <div className="p-8 text-center font-mono text-xs text-stone-500">
+            NO REVISION ITEMS SCHEDULED.
           </div>
         ) : (
           items.map((item, index) => (
             <div
               key={index}
-              className="p-4 sm:p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors space-y-3"
+              className="p-4 sm:p-5 hover:bg-stone-50/50 dark:hover:bg-stone-800/30 transition-colors space-y-3"
             >
               {/* Top Row: Topic and Badges */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-baseline gap-2.5">
-                  <span className="text-xs font-mono text-slate-400 dark:text-slate-500 flex-shrink-0">
+                  <span className="font-mono text-xs font-bold text-stone-400 flex-shrink-0">
                     {String(index + 1).padStart(2, '0')}
                   </span>
-                  <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 font-serif">
                     {item.topic}
                   </h3>
                 </div>
 
                 <div className="flex items-center gap-2">
                   {getPriorityBadge(item.priority)}
-                  <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
-                    <Clock size={12} /> {item.estimated_minutes} min
+                  <span className="inline-flex items-center gap-1 font-mono text-[10px] text-stone-500 uppercase px-2 py-0.5 rounded-[2px] border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800">
+                    <Clock size={11} /> {item.estimated_minutes} MIN
                   </span>
                 </div>
               </div>
 
               {/* Source Document */}
-              <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                <BookOpen size={13} className="text-slate-400 flex-shrink-0" />
-                <span className="truncate">Source: {item.source_name}</span>
+              <div className="flex items-center gap-1.5 font-mono text-[10px] text-stone-500 uppercase">
+                <BookOpen size={12} className="text-stone-400 flex-shrink-0" />
+                <span className="truncate">SOURCE // {item.source_name}</span>
               </div>
 
               {/* Reason Snippet */}
               {item.reason && (
-                <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 text-xs text-slate-600 dark:text-slate-300 flex items-start gap-2">
-                  <AlertCircle size={14} className="mt-0.5 text-slate-400 flex-shrink-0" />
-                  <p className="leading-relaxed italic">"{item.reason}"</p>
+                <div className="p-2.5 rounded-[2px] bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-800 text-xs text-stone-700 dark:text-stone-300 flex items-start gap-2">
+                  <AlertCircle size={13} className="mt-0.5 text-stone-400 flex-shrink-0" />
+                  <p className="leading-relaxed font-sans">{item.reason}</p>
                 </div>
               )}
 
               {/* Action Tags */}
               {item.activities && item.activities.length > 0 && (
-                <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mr-1">
-                    Suggested:
+                <div className="flex items-center gap-1.5 flex-wrap pt-1 font-mono text-[10px]">
+                  <span className="font-bold text-stone-400 uppercase mr-1">
+                    ACTIVITIES:
                   </span>
                   {item.activities.map((a) => (
                     <span
                       key={a}
-                      className="text-[11px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium"
+                      className="px-2 py-0.5 rounded-[2px] border border-stone-900 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-semibold"
                     >
                       {a}
                     </span>

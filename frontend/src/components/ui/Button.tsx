@@ -24,26 +24,27 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
+    // High-contrast, tactile sketch base
     const baseStyles =
-      'inline-flex items-center justify-center font-medium rounded-md transition-colors duration-150 select-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-indigo-500/40 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed';
+      'inline-flex items-center justify-center font-medium rounded-[3px] select-none cursor-pointer transition-all duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-900 dark:focus-visible:ring-stone-100 disabled:opacity-45 disabled:pointer-events-none disabled:cursor-not-allowed active:translate-x-[1px] active:translate-y-[1px] active:shadow-none';
 
     const sizeStyles = {
-      sm: 'text-xs h-8 px-2.5 gap-1.5',
-      md: 'text-sm h-9.5 px-3.5 gap-2',
-      lg: 'text-base h-11 px-5 gap-2.5',
+      sm: 'text-xs h-7.5 px-2.5 gap-1.5 font-medium tracking-tight',
+      md: 'text-xs sm:text-sm h-9 px-3.5 gap-2 font-medium tracking-tight',
+      lg: 'text-sm sm:text-base h-10.5 px-4.5 gap-2.5 font-semibold tracking-tight',
     };
 
     const variantStyles = {
       primary:
-        'bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:active:bg-indigo-700 shadow-sm',
+        'bg-stone-900 text-stone-50 border-[1.5px] border-stone-900 hover:bg-stone-800 shadow-[2px_2px_0px_#18181b] dark:bg-stone-100 dark:text-stone-900 dark:border-stone-100 dark:hover:bg-white dark:shadow-[2px_2px_0px_#52525b]',
       secondary:
-        'bg-slate-100 text-slate-800 hover:bg-slate-200 active:bg-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 dark:active:bg-slate-600',
+        'bg-white text-stone-900 border-[1.5px] border-stone-900 hover:bg-stone-50 shadow-[2px_2px_0px_#18181b] dark:bg-stone-900 dark:text-stone-100 dark:border-stone-600 dark:hover:bg-stone-800 dark:shadow-[2px_2px_0px_#3f3f46]',
       outline:
-        'bg-transparent border border-slate-200 text-slate-700 hover:bg-slate-50 active:bg-slate-100 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800/60 dark:active:bg-slate-800',
+        'bg-transparent border-[1.5px] border-stone-900 text-stone-900 hover:bg-stone-100 dark:border-stone-600 dark:text-stone-100 dark:hover:bg-stone-800',
       ghost:
-        'bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 dark:active:bg-slate-700',
+        'bg-transparent text-stone-700 hover:bg-stone-200/60 hover:text-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-50 active:translate-x-0 active:translate-y-0',
       danger:
-        'bg-rose-600 text-white hover:bg-rose-700 active:bg-rose-800 dark:bg-rose-600 dark:hover:bg-rose-500 shadow-sm',
+        'bg-rose-700 text-white border-[1.5px] border-stone-900 hover:bg-rose-800 shadow-[2px_2px_0px_#18181b] dark:bg-rose-800 dark:border-rose-900 dark:shadow-[2px_2px_0px_#3f3f46]',
     };
 
     return (
@@ -54,7 +55,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading ? (
-          <Loader2 className="animate-spin" size={size === 'sm' ? 14 : size === 'lg' ? 18 : 16} />
+          <Loader2 className="animate-spin" size={size === 'sm' ? 13 : size === 'lg' ? 17 : 15} />
         ) : (
           leftIcon
         )}

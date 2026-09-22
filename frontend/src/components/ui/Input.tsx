@@ -31,7 +31,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="text-xs font-semibold text-slate-700 dark:text-slate-300 tracking-wide select-none"
+            className="text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-stone-300 select-none font-mono text-[11px]"
           >
             {label}
           </label>
@@ -39,7 +39,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
         <div className="relative flex items-center">
           {leftIcon && (
-            <div className="absolute left-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+            <div className="absolute left-3 flex items-center pointer-events-none text-stone-500">
               {leftIcon}
             </div>
           )}
@@ -48,30 +48,30 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             disabled={disabled}
-            className={`w-full text-sm rounded-md border transition-colors duration-150 py-2 px-3 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none
-              ${leftIcon ? 'pl-9.5' : ''}
-              ${rightIcon ? 'pr-9.5' : ''}
+            className={`w-full text-xs sm:text-sm rounded-[2px] border-[1.5px] transition-colors py-2 px-3 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 outline-none
+              ${leftIcon ? 'pl-9' : ''}
+              ${rightIcon ? 'pr-9' : ''}
               ${
                 error
-                  ? 'border-rose-300 dark:border-rose-900/60 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
-                  : 'border-slate-200 dark:border-slate-800 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15'
+                  ? 'border-rose-600 focus:border-rose-700'
+                  : 'border-stone-900 dark:border-stone-700 focus:border-stone-950 dark:focus:border-stone-300 focus:bg-stone-50/50 dark:focus:bg-stone-800/40'
               }
-              ${disabled ? 'opacity-50 cursor-not-allowed bg-slate-50 dark:bg-slate-800/40' : ''}
+              ${disabled ? 'opacity-50 cursor-not-allowed bg-stone-100 dark:bg-stone-800/40' : ''}
               ${className}`}
             {...props}
           />
 
           {rightIcon && (
-            <div className="absolute right-3 flex items-center text-slate-400 dark:text-slate-500">
+            <div className="absolute right-3 flex items-center text-stone-500">
               {rightIcon}
             </div>
           )}
         </div>
 
         {error ? (
-          <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">{error}</p>
+          <p className="text-[11px] font-mono text-rose-700 dark:text-rose-400 font-medium">{error}</p>
         ) : hint ? (
-          <p className="text-xs text-slate-500 dark:text-slate-400">{hint}</p>
+          <p className="text-[11px] font-mono text-stone-500 dark:text-stone-400">{hint}</p>
         ) : null}
       </div>
     );

@@ -7,18 +7,18 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 export function Card({ variant = 'default', className = '', children, ...props }: CardProps) {
   const variantStyles = {
     default:
-      'bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/90 shadow-xs',
+      'bg-white dark:bg-stone-900 border-[1.5px] border-stone-900 dark:border-stone-700',
     elevated:
-      'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm',
+      'bg-white dark:bg-stone-900 border-[1.5px] border-stone-900 dark:border-stone-700 shadow-[2px_2px_0px_#18181b] dark:shadow-[2px_2px_0px_#3f3f46]',
     subtle:
-      'bg-slate-50/70 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800/60',
+      'bg-stone-50/80 dark:bg-stone-900/40 border border-stone-300 dark:border-stone-800',
     interactive:
-      'bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/90 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-sm cursor-pointer transition-all duration-150',
+      'bg-white dark:bg-stone-900 border-[1.5px] border-stone-900 dark:border-stone-700 shadow-[2px_2px_0px_#18181b] dark:shadow-[2px_2px_0px_#3f3f46] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0px_#18181b] dark:hover:shadow-[3px_3px_0px_#52525b] active:translate-x-0 active:translate-y-0 active:shadow-none cursor-pointer transition-all duration-100',
   };
 
   return (
     <div
-      className={`rounded-lg overflow-hidden transition-colors ${variantStyles[variant]} ${className}`}
+      className={`rounded-[3px] overflow-hidden ${variantStyles[variant]} ${className}`}
       {...props}
     >
       {children}
@@ -32,7 +32,7 @@ export function CardHeader({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={`p-5 pb-3 flex flex-col gap-1 ${className}`} {...props}>
+    <div className={`p-4 sm:p-5 pb-3 flex flex-col gap-1 border-b border-stone-100 dark:border-stone-800/80 ${className}`} {...props}>
       {children}
     </div>
   );
@@ -45,7 +45,7 @@ export function CardTitle({
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      className={`text-base font-semibold text-slate-900 dark:text-slate-100 tracking-tight leading-snug ${className}`}
+      className={`text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 tracking-tight leading-snug ${className}`}
       {...props}
     >
       {children}
@@ -59,7 +59,7 @@ export function CardDescription({
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p className={`text-xs text-slate-500 dark:text-slate-400 leading-relaxed ${className}`} {...props}>
+    <p className={`text-xs text-stone-600 dark:text-stone-400 leading-relaxed ${className}`} {...props}>
       {children}
     </p>
   );
@@ -71,7 +71,7 @@ export function CardContent({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={`p-5 pt-2 ${className}`} {...props}>
+    <div className={`p-4 sm:p-5 ${className}`} {...props}>
       {children}
     </div>
   );
@@ -84,7 +84,7 @@ export function CardFooter({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={`p-5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between ${className}`}
+      className={`p-4 sm:p-5 pt-3 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between ${className}`}
       {...props}
     >
       {children}
