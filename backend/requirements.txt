@@ -8,7 +8,7 @@ pydantic-settings
 python-jose[cryptography]
 bcrypt
 python-multipart
-pypdf
+pymupdf
 python-docx
 python-pptx
 openai
@@ -17,3 +17,6 @@ chromadb
 edge-tts
 faster-whisper
 soundfile
+asyncpg
+gunicorn
+psycopg2-binary

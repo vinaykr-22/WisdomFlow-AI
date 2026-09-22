@@ -1,4 +1,5 @@
 import uuid
+import secrets
 
 from datetime import datetime, timedelta, timezone
 
@@ -45,6 +46,16 @@ class ChangePasswordRequest(BaseModel):
     new_password: str
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    token: str
+    new_password: str
+
+
 class UpdateProfileRequest(BaseModel):
     full_name: str | None = None
     bio: str | None = None
@@ -77,6 +88,7 @@ def _create_refresh_token(sub: str) -> str:
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
+    body.email = body.email.lower().strip()
     result = await db.execute(select(User).where(User.email == body.email))
     if result.scalar_one_or_none():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
@@ -98,6 +110,7 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login")
 async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
+    body.email = body.email.lower().strip()
     result = await db.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
     if not user or not bcrypt.checkpw(body.password.encode(), user.hashed_password.encode()):
@@ -137,6 +150,53 @@ async def change_password(
     user.hashed_password = bcrypt.hashpw(body.new_password.encode(), bcrypt.gensalt()).decode()
     await db.commit()
     return {"message": "Password updated successfully"}
+
+
+@router.post("/forgot-password")
+async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
+    body.email = body.email.lower().strip()
+    result = await db.execute(select(User).where(User.email == body.email))
+    user = result.scalar_one_or_none()
+    
+    if user:
+        reset_token = secrets.token_urlsafe(32)
+        user.reset_password_token = reset_token
+        user.reset_password_expires = datetime.now(timezone.utc) + timedelta(hours=1)
+        await db.commit()
+        
+        # Print to console for development testing
+        print(f"==== PASSWORD RESET LINK ====")
+        print(f"To reset your password, visit:")
+        # Ideally, we get frontend URL from config
+        print(f"http://localhost:5173/reset-password?token={reset_token}&email={user.email}")
+        print(f"=============================")
+
+    # Always return success to prevent email enumeration
+    return {"message": "If that email is registered, you will receive a password reset link."}
+
+
+@router.post("/reset-password")
+async def reset_password(body: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
+    body.email = body.email.lower().strip()
+    result = await db.execute(
+        select(User).where(
+            User.email == body.email,
+            User.reset_password_token == body.token,
+            User.reset_password_expires > datetime.now(timezone.utc)
+        )
+    )
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired reset token")
+        
+    user.hashed_password = bcrypt.hashpw(body.new_password.encode(), bcrypt.gensalt()).decode()
+    user.reset_password_token = None
+    user.reset_password_expires = None
+    await db.commit()
+    
+    return {"message": "Password has been successfully reset"}
+
 
 
 @router.put("/me", response_model=UserResponse)

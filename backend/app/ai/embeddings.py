@@ -1,11 +1,8 @@
 from functools import lru_cache
 
-import numpy as np
-from sentence_transformers import SentenceTransformer
-
-
 @lru_cache(maxsize=1)
-def _get_model() -> SentenceTransformer:
+def _get_model():
+    from sentence_transformers import SentenceTransformer
     return SentenceTransformer("all-MiniLM-L6-v2")  # ponytail: single model, CPU, 384 dims
 
 

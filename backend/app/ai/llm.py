@@ -141,7 +141,7 @@ def generate_summary(text: str, page_count: int = 5) -> str:
         result = _call_llm(
             [{"role": "user", "content": prompt.format(text=text[:limit])}],
             model="llama3:latest",
-            base_url="http://localhost:11434/v1",
+            base_url=settings.ollama_base_url,
         )
         return result if isinstance(result, str) else ""
     except Exception as e:
@@ -199,7 +199,7 @@ def generate_quiz(text: str, difficulty: str = "medium", count: int = 5) -> list
 
     # last resort: Ollama fallback
     try:
-        result = _call_llm([{"role": "user", "content": prompt}], model="llama3:latest", base_url="http://localhost:11434/v1")
+        result = _call_llm([{"role": "user", "content": prompt}], model="llama3:latest", base_url=settings.ollama_base_url)
         raw = result if isinstance(result, str) else ""
         questions = _parse_json(raw)
         if questions:
@@ -321,7 +321,7 @@ def generate_roadmap(text: str | None = None, topic_name: str | None = None) -> 
         errors.append(f"Primary LLM failed: {e}")
 
     try:
-        result = _call_llm([{"role": "user", "content": prompt}], model="llama3:latest", base_url="http://localhost:11434/v1")
+        result = _call_llm([{"role": "user", "content": prompt}], model="llama3:latest", base_url=settings.ollama_base_url)
         raw = result if isinstance(result, str) else ""
         data = _parse_json_single(raw)
         if data:
@@ -366,7 +366,7 @@ def chat_completion(
         errors.append(f"Primary LLM failed: {e}")
 
     try:
-        return _call_llm(messages, model="llama3:latest", stream=stream, base_url="http://localhost:11434/v1")
+        return _call_llm(messages, model="llama3:latest", stream=stream, base_url=settings.ollama_base_url)
     except Exception as e:
         errors.append(f"Fallback Ollama failed: {e}")
 
@@ -428,7 +428,7 @@ def generate_revision_plan(plan_type: str, doc_performance: str, flashcard_data:
         errors.append(f"Primary LLM failed: {e}")
 
     try:
-        result = _call_llm([{"role": "user", "content": prompt}], model="llama3:latest", base_url="http://localhost:11434/v1")
+        result = _call_llm([{"role": "user", "content": prompt}], model="llama3:latest", base_url=settings.ollama_base_url)
         raw = result if isinstance(result, str) else ""
         data = _parse_json_single(raw)
         if data:
@@ -463,7 +463,7 @@ def generate_podcast_script(text: str) -> list[dict]:
         errors.append(f"Primary LLM failed: {e}")
 
     try:
-        result = _call_llm([{"role": "user", "content": prompt}], model="llama3:latest", base_url="http://localhost:11434/v1")
+        result = _call_llm([{"role": "user", "content": prompt}], model="llama3:latest", base_url=settings.ollama_base_url)
         raw = result if isinstance(result, str) else ""
         data = _parse_json(raw)
         if data:
