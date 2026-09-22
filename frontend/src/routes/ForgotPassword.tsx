@@ -1,13 +1,11 @@
 import type { FormEvent } from 'react';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import api from '../api/client';
 import { ArrowRight, Loader2, CheckCircle2, AlertCircle, KeyRound, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { WisdomFlowLogo } from '../components/ui/WisdomFlowLogo';
 
 export default function ForgotPassword() {
-  const navigate = useNavigate();
-
   // Step 1: email, Step 2: new password
   const [step, setStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState('');
