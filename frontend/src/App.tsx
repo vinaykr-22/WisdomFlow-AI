@@ -16,6 +16,8 @@ import Revision from './routes/Revision';
 import VoiceTutor from './routes/VoiceTutor';
 import Search from './routes/Search';
 
+import { ToastProvider } from './components/ui/Toast';
+
 export default function App() {
   const isDark = useThemeStore((state) => state.isDark);
 
@@ -28,7 +30,8 @@ export default function App() {
   }, [isDark]);
 
   return (
-    <BrowserRouter>
+    <ToastProvider>
+      <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -47,6 +50,7 @@ export default function App() {
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </ToastProvider>
   );
 }

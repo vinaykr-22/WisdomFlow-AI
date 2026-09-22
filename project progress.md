@@ -1,4 +1,4 @@
-# LearnFlow AI — Project Progress
+# WisdomFlow AI — Project Progress
 
 ## ✅ Completed
 

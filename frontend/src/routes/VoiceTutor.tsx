@@ -3,12 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import { useAuthStore } from '../stores/auth';
 import RadialVisualizer from './RadialVisualizer';
-import { X, MessageSquare } from 'lucide-react';
+import { X, MessageSquare, Mic, AlertCircle } from 'lucide-react';
 
 type State = 'idle' | 'listening' | 'thinking' | 'speaking';
 
-interface Doc { id: string; title: string; }
-interface ChatMsg { role: 'user' | 'assistant'; content: string; }
+interface Doc {
+  id: string;
+  title: string;
+}
+
+interface ChatMsg {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
 /* ── Silence detection threshold in ms ── */
 const SILENCE_THRESHOLD_MS = 800;
@@ -26,7 +33,9 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
   const [docs, setDocs] = useState<Doc[]>([]);
   const [docId, setDocId] = useState('');
   const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const [micError, setMicError] = useState<string | null>(null);
   const navigate = useNavigate();
+
   const stateRef = useRef<State>('idle');
   const wsRef = useRef<WebSocket | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -49,7 +58,7 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
   }, [messages, state]);
 
   useEffect(() => {
-    api.get('/documents').then(({ data }) => setDocs(data.documents || []));
+    api.get('/documents').then(({ data }) => setDocs(data.documents || [])).catch(() => {});
   }, []);
 
   const setStateSafe = useCallback((s: State) => {
@@ -68,7 +77,7 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const docParam = docId ? `&document_id=${encodeURIComponent(docId)}` : '';
     const ws = new WebSocket(
-      `${protocol}//${window.location.host}/api/v1/voice/ws?token=${token}${docParam}`,
+      `${protocol}//${window.location.host}/api/v1/voice/ws?token=${token}${docParam}`
     );
     ws.binaryType = 'arraybuffer';
     wsRef.current = ws;
@@ -94,20 +103,16 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
     return stream;
   }, []);
 
-  /* Pre-warm mic on mount so the first click is instant */
   useEffect(() => {
-    ensureMicStream().catch(() => {
-      /* User hasn't granted permission yet — that's fine, we'll ask on click */
-    });
+    ensureMicStream().catch(() => {});
 
     return () => {
       wsRef.current?.close();
       wsRef.current = null;
-      streamRef.current?.getTracks().forEach(t => t.stop());
+      streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [ensureMicStream]);
 
   /* ───────────────────────── Stop / cleanup ───────────────────────── */
 
@@ -133,13 +138,13 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
     responseCompleteRef.current = false;
     hadSpeechRef.current = false;
     setStateSafe('idle');
-    /* Keep WS + mic stream alive for reuse — only tear them down on unmount */
   }, [setStateSafe]);
 
   /* ───────────────────────── Recording with streaming chunks ───────────────────────── */
 
   const startListening = useCallback(async () => {
-    if (recorderRef.current) return; // already recording
+    if (recorderRef.current) return;
+    setMicError(null);
     try {
       const stream = await ensureMicStream();
 
@@ -162,7 +167,6 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
         if (e.data.size) chunks.push(e.data);
       };
 
-      /* ── Shared stop helper (silence detector + timeout both call this) ── */
       const stopRecording = () => {
         if (!recorderRef.current) return;
         if (listeningTimeoutRef.current) {
@@ -173,20 +177,25 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
           clearTimeout(thinkingTimeoutRef.current);
           thinkingTimeoutRef.current = null;
         }
-        cancelAnimationFrame(silenceTimerRef.current!);
-        silenceTimerRef.current = null;
+        if (silenceTimerRef.current) {
+          cancelAnimationFrame(silenceTimerRef.current);
+          silenceTimerRef.current = null;
+        }
         recorder.stop();
         audioCtx.close();
         recorderRef.current = null;
         audioCtxRef.current = null;
         if (chunks.length > 0) {
           const blob = new Blob(chunks, { type: mime });
-          blob.arrayBuffer().then(buf => {
+          blob.arrayBuffer().then((buf) => {
             if (wsRef.current?.readyState === WebSocket.OPEN) {
               wsRef.current.send(buf);
             } else if (wsRef.current?.readyState === WebSocket.CONNECTING) {
               const ws = wsRef.current;
-              const onOpen = () => { ws.removeEventListener('open', onOpen); ws.send(buf); };
+              const onOpen = () => {
+                ws.removeEventListener('open', onOpen);
+                ws.send(buf);
+              };
               ws.addEventListener('open', onOpen);
             }
           });
@@ -198,7 +207,6 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
       let silenceStart = 0;
       hadSpeechRef.current = false;
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
-      let frameCount = 0;
 
       const checkSilence = () => {
         if (stateRef.current !== 'listening') return;
@@ -209,10 +217,6 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
           sum += v * v;
         }
         const rms = Math.sqrt(sum / dataArray.length);
-
-        /* Debug: log RMS once per second */
-        frameCount++;
-        if (frameCount % 60 === 0) console.log('rms:', rms.toFixed(4), 'hadSpeech:', hadSpeechRef.current);
 
         if (rms >= 0.01) {
           silenceStart = 0;
@@ -234,17 +238,16 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
       setStateSafe('listening');
       silenceTimerRef.current = requestAnimationFrame(checkSilence);
     } catch {
-      alert('Microphone access denied. Please allow microphone permissions.');
+      setMicError('Microphone permission denied. Please allow microphone access in browser settings.');
       wsRef.current = null;
       setStateSafe('idle');
     }
-  }, [setStateSafe, ensureMicStream]);
+  }, [setStateSafe, ensureMicStream, stopSession]);
 
-  /* ───────────────────────── Streaming audio playback (per-sentence) ───────────────────────── */
+  /* ───────────────────────── Audio playback ───────────────────────── */
 
   const playNextInQueue = useCallback(() => {
     if (isPlayingRef.current) return;
-    /* Nothing queued — if response is complete, go back to listening */
     if (audioQueueRef.current.length === 0) {
       if (responseCompleteRef.current) startListening();
       return;
@@ -277,11 +280,11 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
 
     audioBufRef.current = [];
     setMessages([]);
+    setMicError(null);
 
-    /* Ensure WS is open (may reconnect if previous was closed) */
     const ws = ensureWs();
     if (!ws) {
-      alert('Not authenticated');
+      alert('Authentication required.');
       return;
     }
 
@@ -294,10 +297,10 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
               setStateSafe('thinking');
               break;
             case 'transcript':
-              setMessages(prev => [...prev, { role: 'user', content: msg.text }]);
+              setMessages((prev) => [...prev, { role: 'user', content: msg.text }]);
               break;
             case 'response_text':
-              setMessages(prev => [...prev, { role: 'assistant', content: msg.text }]);
+              setMessages((prev) => [...prev, { role: 'assistant', content: msg.text }]);
               break;
             case 'sentence_done':
               if (sentenceBufRef.current.length > 0) {
@@ -344,28 +347,27 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
       };
     };
 
-    /* Wire handlers immediately so onerror/onclose work even if WS fails */
     wireUpHandlers(ws);
-    /* Immediate visual feedback before any async work */
     setStateSafe('listening');
-    /* Start mic immediately — don't wait for WS to connect */
     startListening();
-    /* Fallback: force-stop after max duration */
     listeningTimeoutRef.current = window.setTimeout(stopSession, LISTENING_TIMEOUT_MS);
-  }, [startListening, stopSession, setStateSafe, ensureWs]);
-
-  /* ───────────────────────── UI ───────────────────────── */
+  }, [startListening, stopSession, setStateSafe, ensureWs, playNextInQueue]);
 
   const stateLabel = () => {
     switch (state) {
-      case 'idle': return 'Tap the microphone to start a conversation';
-      case 'listening': return 'Listening...';
-      case 'thinking': return 'Thinking...';
-      case 'speaking': return 'Speaking...';
+      case 'idle':
+        return 'Tap microphone to speak';
+      case 'listening':
+        return 'Listening to your voice...';
+      case 'thinking':
+        return 'Analyzing and formulating response...';
+      case 'speaking':
+        return 'AI Tutor is speaking...';
     }
   };
 
   const handleClose = () => {
+    stopSession();
     if (onClose) {
       onClose();
     } else {
@@ -374,77 +376,129 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
   };
 
   return (
-    <div className="w-full h-full bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800 relative mx-auto">
+    <div className="w-full h-[calc(100vh-8rem)] min-h-[500px] bg-white dark:bg-slate-900 rounded-xl shadow-xs flex flex-col overflow-hidden border border-slate-200/80 dark:border-slate-800">
       
-      {/* Top Header Bar */}
-      <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-purple-500 animate-pulse" />
-          <h2 className="font-bold text-slate-800 dark:text-slate-100 text-base">Voice AI Tutor</h2>
+      {/* Top Utility Header */}
+      <div className="h-14 px-5 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50 flex-shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900/40">
+            <Mic size={15} />
+          </div>
+          <div>
+            <h2 className="text-xs font-semibold text-slate-900 dark:text-slate-100">
+              Interactive Voice Tutor
+            </h2>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500">
+              Conversational study session with real-time speech
+            </p>
+          </div>
         </div>
-        
+
         <div className="flex items-center gap-3">
-          <div className="bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-2">
-            <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Context
-            </label>
+          {/* Document Context Selector */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs">
+            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase">
+              Topic:
+            </span>
             <select
-              className="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 outline-none w-28 sm:w-44 truncate cursor-pointer"
+              className="bg-transparent text-xs font-medium text-slate-700 dark:text-slate-200 outline-none max-w-[140px] sm:max-w-[200px] truncate cursor-pointer"
               value={docId}
               onChange={(e) => setDocId(e.target.value)}
             >
               <option value="">General Knowledge</option>
-              {docs.map((d) => <option key={d.id} value={d.id}>{d.title}</option>)}
+              {docs.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.title}
+                </option>
+              ))}
             </select>
           </div>
-          <button 
-            onClick={handleClose} 
-            className="w-9 h-9 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-full flex items-center justify-center transition-colors cursor-pointer border border-slate-200 dark:border-slate-700 shadow-sm"
-            title="Close"
+
+          <button
+            onClick={handleClose}
+            className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors cursor-pointer"
+            title="Close voice tutor"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row flex-1 min-h-0">
-        {/* Main Interaction Area (Left/Top) */}
-        <div className="flex-1 flex flex-col items-center justify-center relative p-6 sm:p-8 bg-slate-50 dark:bg-slate-900/50">
-          <div className="flex-1 w-full flex items-center justify-center py-4">
+      {micError && (
+        <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border-b border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
+          <AlertCircle size={15} />
+          <span>{micError}</span>
+        </div>
+      )}
+
+      {/* Main Workspace: Visualizer + Live Transcript */}
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+        
+        {/* Interaction Stage */}
+        <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-50/40 dark:bg-slate-900/20 relative min-h-0">
+          <div className="flex-1 w-full flex items-center justify-center">
             <RadialVisualizer state={state} onClick={handleMicClick} />
           </div>
 
-          <div className="my-4 flex items-center gap-3 bg-white dark:bg-slate-800 px-6 py-3 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm relative z-10">
-            <div className={`w-3 h-3 rounded-full shadow-sm ${state === 'idle' ? 'bg-slate-300 dark:bg-slate-600' : state === 'listening' ? 'bg-red-500 animate-pulse' : state === 'thinking' ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`} />
-            <p className="text-sm font-bold tracking-wide text-slate-700 dark:text-slate-200 uppercase">{stateLabel()}</p>
+          <div className="mt-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-xs">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                state === 'idle'
+                  ? 'bg-slate-400'
+                  : state === 'listening'
+                  ? 'bg-rose-500 animate-pulse'
+                  : state === 'thinking'
+                  ? 'bg-amber-500 animate-pulse'
+                  : 'bg-emerald-500 animate-pulse'
+              }`}
+            />
+            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+              {stateLabel()}
+            </span>
           </div>
         </div>
 
-        {/* Conversation History (Right/Bottom) */}
-        <div className="w-full lg:w-[380px] h-[40%] lg:h-full border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col">
-          <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
-            <MessageSquare size={18} className="text-purple-500" />
-            <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">Live Transcript</h3>
+        {/* Live Transcript Panel */}
+        <div className="w-full lg:w-80 h-48 sm:h-64 lg:h-full border-t lg:border-t-0 lg:border-l border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col min-h-0 flex-shrink-0">
+          <div className="p-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
+            <MessageSquare size={14} className="text-indigo-600 dark:text-indigo-400" />
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Session Transcript
+            </h3>
           </div>
-          
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 scroll-smooth scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700">
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0 text-xs">
             {messages.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs font-medium text-center px-4">
-                Tap the microphone to start learning. Your conversation will appear here.
+              <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500 text-center px-4">
+                Tap the microphone and ask a question. Spoken dialogue will be transcribed here.
               </div>
             ) : (
               messages.map((m, i) => (
-                <div key={i} className={`p-3 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm ${m.role === 'user' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white ml-6 rounded-tr-sm' : 'bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-800 dark:text-slate-200 mr-6 rounded-tl-sm'}`}>
-                  <span className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${m.role === 'user' ? 'text-blue-100' : 'text-purple-500 dark:text-purple-400'}`}>
-                    {m.role === 'user' ? 'You' : 'AI Voice Tutor'}
+                <div
+                  key={i}
+                  className={`p-3 rounded-lg leading-relaxed ${
+                    m.role === 'user'
+                      ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-950 dark:text-indigo-200 border border-indigo-100 dark:border-indigo-900/40 ml-4'
+                      : 'bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/60 mr-4'
+                  }`}
+                >
+                  <span
+                    className={`block text-[10px] font-semibold uppercase tracking-wider mb-1 ${
+                      m.role === 'user'
+                        ? 'text-indigo-600 dark:text-indigo-400'
+                        : 'text-slate-400 dark:text-slate-500'
+                    }`}
+                  >
+                    {m.role === 'user' ? 'You' : 'Voice Tutor'}
                   </span>
-                  {m.content}
+                  <p>{m.content}</p>
                 </div>
               ))
             )}
-            <div ref={messagesEndRef} className="h-4" />
+            <div ref={messagesEndRef} />
           </div>
         </div>
+
       </div>
 
       <audio ref={audioRef} className="hidden" />

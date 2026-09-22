@@ -1,4 +1,4 @@
-# LearnFlow AI — Project Context
+# WisdomFlow AI — Project Context
 
 > **Purpose**: This document captures all research, architecture decisions, tech stack choices, and implementation plans so that any new session can immediately understand the project state.
 
@@ -6,7 +6,7 @@
 
 ## 1. Project Overview
 
-**LearnFlow AI** is an AI-powered educational platform that converts learning materials into interactive learning experiences. It generates structured study notes, creates personalized learning roadmaps, teaches concepts through an AI Voice Tutor, and continuously evaluates learner progress.
+**WisdomFlow AI** is an AI-powered educational platform that converts learning materials into interactive learning experiences. It generates structured study notes, creates personalized learning roadmaps, teaches concepts through an AI Voice Tutor, and continuously evaluates learner progress.
 
 **Target Users**: College/University students, competitive exam aspirants, self-learners, professionals, teachers.
 

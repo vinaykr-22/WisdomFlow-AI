@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
-    database_url: str = "sqlite+aiosqlite:///./learnflow.db"
+    database_url: str = "sqlite+aiosqlite:///./wisdomflow.db"
     secret_key: str = "change-me-in-production"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7

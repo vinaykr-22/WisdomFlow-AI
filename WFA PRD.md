@@ -2,7 +2,7 @@
 
 
 
-**# LearnFlow AI**
+**# WisdomFlow AI**
 
 
 
@@ -22,7 +22,7 @@
 
 
 
-**LearnFlow AI is an AI-powered educational platform that converts learning materials into an interactive learning experience. Instead of simply summarizing documents, the platform understands educational content, generates structured study notes, creates personalized learning roadmaps, teaches concepts through an AI Voice Tutor, and continuously evaluates learner progress.**
+**WisdomFlow AI is an AI-powered educational platform that converts learning materials into an interactive learning experience. Instead of simply summarizing documents, the platform understands educational content, generates structured study notes, creates personalized learning roadmaps, teaches concepts through an AI Voice Tutor, and continuously evaluates learner progress.**
 
 
 
@@ -78,7 +78,7 @@
 
 
 
-**LearnFlow AI combines:**
+**WisdomFlow AI combines:**
 
 
 

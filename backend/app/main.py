@@ -55,7 +55,7 @@ async def _reindex_stale_docs():
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    await _reindex_stale_docs()
+    asyncio.create_task(_reindex_stale_docs())
     yield
     await engine.dispose()
 

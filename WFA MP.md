@@ -6,7 +6,7 @@
 
 
 
-**\*\*LearnFlow AI\*\***
+**\*\*WisdomFlow AI\*\***
 
 
 

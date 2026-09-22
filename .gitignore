@@ -32,3 +32,9 @@ Thumbs.db
 
 # Uploads (large user files)
 backend/uploads/
+
+#Docs
+LFA MP.md
+LFA PRD.md
+project context.md
+project progress.md

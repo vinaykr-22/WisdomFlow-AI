@@ -1,173 +1,652 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../api/client';
-import { Layers, RotateCcw, Bookmark, Sparkles, AlertCircle } from 'lucide-react';
+import {
+  Layers,
+  RotateCcw,
+  Bookmark,
+  Plus,
+  ArrowRight,
+  ArrowLeft,
+  ChevronLeft,
+  CheckCircle2,
+  FileText,
+  Lightbulb,
+  Eye,
+  EyeOff,
+  LayoutGrid,
+  Maximize2,
+} from 'lucide-react';
+import { PageContainer } from '../components/layout';
+import { Button } from '../components/ui/Button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
+import { Progress } from '../components/ui/Progress';
+import { useToast } from '../components/ui/useToast';
 
-interface Doc { id: string; title: string }
-interface Card { id: string; front: string; back: string; hint: string | null; is_bookmarked: boolean }
+interface Doc {
+  id: string;
+  title: string;
+}
+
+interface FlashcardItem {
+  id: string;
+  front: string;
+  back: string;
+  hint: string | null;
+  is_bookmarked: boolean;
+}
+
+interface FlashcardSetItem {
+  id: string;
+  title: string;
+  card_count: number;
+  created_at: string;
+}
 
 export default function Flashcards() {
+  const [searchParams] = useSearchParams();
+  const { toast } = useToast();
+
+  // Data
   const [docs, setDocs] = useState<Doc[]>([]);
   const [docId, setDocId] = useState('');
   const [count, setCount] = useState(10);
   const [loading, setLoading] = useState(false);
-  const [cards, setCards] = useState<Card[]>([]);
-  const [flipped, setFlipped] = useState<Set<string>>(new Set());
+  const [generating, setGenerating] = useState(false);
+
+  // Active Deck State
+  const [cards, setCards] = useState<FlashcardItem[]>([]);
   const [title, setTitle] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isRevealed, setIsRevealed] = useState(false);
+  const [showHint, setShowHint] = useState(false);
 
-  useEffect(() => { api.get('/documents').then(({ data }) => setDocs(data.documents)); }, []);
+  // Session Knowledge States
+  const [masteredIds, setMasteredIds] = useState<Set<string>>(new Set());
+  const [needsReviewIds, setNeedsReviewIds] = useState<Set<string>>(new Set());
 
-  const handleGenerate = async () => {
-    if (!docId) return;
+  // View Modes: 'focus' (single card study) | 'grid' (deck overview) | 'list' (sets library) | 'create'
+  const [view, setView] = useState<'focus' | 'grid' | 'list' | 'create'>('create');
+  const [setsList, setSetsList] = useState<FlashcardSetItem[]>([]);
+
+  // Open a specific flashcard set
+  const openSet = useCallback(async (setId: string) => {
     setLoading(true);
-    setCards([]);
-    setFlipped(new Set());
+    setIsRevealed(false);
+    setShowHint(false);
+    setCurrentIndex(0);
+    setMasteredIds(new Set());
+    setNeedsReviewIds(new Set());
+
+    try {
+      const { data } = await api.get(`/flashcards/sets/${setId}`);
+      setCards(data.cards || []);
+      setTitle(data.title || 'Flashcard Deck');
+      setView('focus');
+    } catch {
+      toast.error('Load Failed', 'Could not retrieve flashcard set');
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  // Load initial sets & documents
+  const loadInitialData = useCallback(async () => {
+    try {
+      const [docsRes, setsRes] = await Promise.all([
+        api.get('/documents'),
+        api.get('/flashcards/sets').catch(() => ({ data: { sets: [] } })),
+      ]);
+
+      setDocs(docsRes.data.documents || []);
+      const fetchedSets: FlashcardSetItem[] = setsRes.data.sets || [];
+      setSetsList(fetchedSets);
+
+      // Check query params
+      const querySetId = searchParams.get('id');
+      const queryDocId = searchParams.get('docId') || searchParams.get('doc');
+
+      if (querySetId) {
+        openSet(querySetId);
+      } else if (queryDocId) {
+        setDocId(queryDocId);
+        setView('create');
+      } else if (fetchedSets.length > 0) {
+        setView('list');
+      } else {
+        setView('create');
+      }
+    } catch {
+      toast.error('Failed to load flashcard data');
+    }
+  }, [searchParams, toast, openSet]);
+
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
+
+  // Generate a new deck
+  const handleGenerate = async () => {
+    if (!docId) {
+      toast.warning('Select Document', 'Choose a document to generate cards from.');
+      return;
+    }
+
+    setGenerating(true);
+    setIsRevealed(false);
+    setShowHint(false);
+    setCurrentIndex(0);
+    setMasteredIds(new Set());
+    setNeedsReviewIds(new Set());
+
     try {
       const { data } = await api.post('/flashcards/generate', { document_id: docId, count });
       const { data: setData } = await api.get(`/flashcards/sets/${data.id}`);
-      setCards(setData.cards);
-      setTitle(setData.title);
-    } catch (err: any) {
-      alert(err.response?.data?.detail || 'Failed to generate flashcards');
+      setCards(setData.cards || []);
+      setTitle(setData.title || 'Flashcard Deck');
+      setView('focus');
+      toast.success('Deck Generated', `Created ${setData.cards.length} study flashcards`);
+
+      // Refresh sets list
+      api.get('/flashcards/sets').then((res) => setSetsList(res.data.sets || [])).catch(() => {});
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Failed to generate flashcards';
+      toast.error('Generation Failed', errorMsg);
+    } finally {
+      setGenerating(false);
     }
-    setLoading(false);
   };
 
-  const toggleFlip = (id: string) => {
-    setFlipped((prev) => {
+  // Toggle bookmark on a card
+  const toggleBookmark = useCallback(async (card: FlashcardItem) => {
+    const nextState = !card.is_bookmarked;
+    try {
+      await api.patch(`/flashcards/${card.id}`, { is_bookmarked: nextState });
+      setCards((prev) =>
+        prev.map((c) => (c.id === card.id ? { ...c, is_bookmarked: nextState } : c))
+      );
+      toast.info(nextState ? 'Card Bookmarked' : 'Bookmark Removed');
+    } catch {
+      toast.error('Bookmark update failed');
+    }
+  }, [toast]);
+
+  // Advance card with animation reset
+  const advanceCard = useCallback((step: number) => {
+    setCurrentIndex((prev) => Math.max(0, Math.min(cards.length - 1, prev + step)));
+    setIsRevealed(false);
+    setShowHint(false);
+  }, [cards.length]);
+
+  // Self-assessment triggers
+  const markMastered = (cardId: string) => {
+    setMasteredIds((prev) => new Set(prev).add(cardId));
+    setNeedsReviewIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      next.delete(cardId);
       return next;
     });
+
+    // Advance to next card if available
+    if (currentIndex < cards.length - 1) {
+      advanceCard(1);
+    }
   };
 
-  const toggleBookmark = async (card: Card) => {
-    try {
-      await api.patch(`/flashcards/${card.id}`, { is_bookmarked: !card.is_bookmarked });
-      setCards((prev) => prev.map((c) => c.id === card.id ? { ...c, is_bookmarked: !c.is_bookmarked } : c));
-    } catch { /* ignore */ }
+  const markNeedsReview = (cardId: string) => {
+    setNeedsReviewIds((prev) => new Set(prev).add(cardId));
+    setMasteredIds((prev) => {
+      const next = new Set(prev);
+      next.delete(cardId);
+      return next;
+    });
+
+    if (currentIndex < cards.length - 1) {
+      advanceCard(1);
+    }
   };
 
-  if (cards.length > 0) {
+  // Keyboard navigation for focus study mode
+  useEffect(() => {
+    if (view !== 'focus' || cards.length === 0) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
+
+      const currentCard = cards[currentIndex];
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        setIsRevealed((prev) => !prev);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        advanceCard(-1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        advanceCard(1);
+      } else if (e.key === 'b' || e.key === 'B') {
+        e.preventDefault();
+        if (currentCard) toggleBookmark(currentCard);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [view, cards, currentIndex, advanceCard, toggleBookmark]);
+
+  if (loading) {
     return (
-      <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
-          <div>
-            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <Layers className="text-purple-500 dark:text-purple-400" /> {title}
-            </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{cards.length} cards in this set &middot; Click any card to flip</p>
-          </div>
-          <button 
-            onClick={() => { setCards([]); setFlipped(new Set()); }} 
-            className="flex items-center gap-2 text-sm bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-xl transition-colors font-medium cursor-pointer"
-          >
-            <RotateCcw size={16} /> New Set
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ perspective: '1000px' }}>
-          {cards.map((card) => {
-            const isFlipped = flipped.has(card.id);
-            return (
-              <div 
-                key={card.id} 
-                className="relative h-64 w-full cursor-pointer group"
-                style={{ transformStyle: 'preserve-3d' }}
-                onClick={() => toggleFlip(card.id)}
-              >
-                <div 
-                  className="absolute inset-0 w-full h-full transition-all duration-500"
-                  style={{ 
-                    transformStyle: 'preserve-3d', 
-                    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' 
-                  }}
-                >
-                  
-                  {/* Front */}
-                  <div 
-                    className="absolute inset-0 w-full h-full bg-white dark:bg-slate-900 rounded-3xl shadow-md border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center p-8 text-center group-hover:shadow-lg transition-shadow"
-                    style={{ backfaceVisibility: 'hidden' }}
-                  >
-                    <span className="absolute top-4 left-4 text-xs font-bold text-slate-300 dark:text-slate-600 uppercase tracking-widest">Front</span>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); toggleBookmark(card); }}
-                      className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${card.is_bookmarked ? 'text-yellow-500 bg-yellow-50 dark:bg-yellow-950/40' : 'text-slate-300 dark:text-slate-600 hover:text-yellow-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                    >
-                      <Bookmark size={20} fill={card.is_bookmarked ? "currentColor" : "none"} />
-                    </button>
-                    <h3 className="text-xl font-medium text-slate-800 dark:text-slate-100">{card.front}</h3>
-                  </div>
-
-                  {/* Back */}
-                  <div 
-                    className="absolute inset-0 w-full h-full bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-900 dark:to-indigo-950/40 rounded-3xl shadow-md border border-purple-100 dark:border-indigo-900/50 flex flex-col items-center justify-center p-8 text-center"
-                    style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
-                  >
-                    <span className="absolute top-4 left-4 text-xs font-bold text-purple-300 dark:text-purple-400 uppercase tracking-widest">Back</span>
-                    <p className="text-lg font-medium text-slate-800 dark:text-slate-100 leading-relaxed">{card.back}</p>
-                    
-                    {card.hint && (
-                      <div className="absolute bottom-4 inset-x-4 flex items-center justify-center gap-1.5 text-xs text-purple-600 dark:text-purple-300 bg-white/50 dark:bg-slate-800/60 backdrop-blur-sm py-2 px-4 rounded-xl mx-auto max-w-[80%] border border-purple-100/50 dark:border-purple-800/50">
-                        <AlertCircle size={14} /> <span className="truncate">Hint: {card.hint}</span>
-                      </div>
-                    )}
-                  </div>
-
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <PageContainer title="Flashcard Deck" description="Loading study cards...">
+        <Card>
+          <CardContent className="py-16 text-center text-xs text-[var(--color-text-muted)]">
+            Loading flashcard deck...
+          </CardContent>
+        </Card>
+      </PageContainer>
     );
   }
 
-  return (
-    <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500 pt-8">
-      <div className="text-center space-y-3">
-        <div className="w-16 h-16 bg-purple-100 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center mx-auto shadow-inner">
-          <Layers size={32} />
-        </div>
-        <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100">Flashcard Generator</h2>
-        <p className="text-slate-500 dark:text-slate-400">Transform your documents into interactive study sets.</p>
-      </div>
+  // 1. FOCUS STUDY VIEW: Single-Card Deep Practice Mode
+  if (view === 'focus' && cards.length > 0) {
+    const currentCard = cards[currentIndex];
+    const totalCards = cards.length;
+    const progressPct = Math.round(((currentIndex + 1) / totalCards) * 100);
+    const isMastered = masteredIds.has(currentCard.id);
+    const needsReview = needsReviewIds.has(currentCard.id);
 
-      <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 space-y-6">
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Select Document</label>
-          <select 
-            value={docId} 
-            onChange={(e) => setDocId(e.target.value)} 
-            className="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-3 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all outline-none"
+    return (
+      <PageContainer
+        title={title}
+        description="Active recall practice. Reveal the answer and assess your retention."
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setView('grid')}
+              leftIcon={<LayoutGrid size={14} />}
+            >
+              Deck Overview
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setView('list')}
+            >
+              All Decks
+            </Button>
+          </div>
+        }
+      >
+        <div className="max-w-2xl mx-auto space-y-5">
+          
+          {/* Progress Header Strip */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)]">
+              <span className="font-semibold text-[var(--color-text)]">
+                Card {currentIndex + 1} of {totalCards}
+              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                  {masteredIds.size} mastered
+                </span>
+                {needsReviewIds.size > 0 && (
+                  <span className="text-amber-600 dark:text-amber-400 font-medium">
+                    {needsReviewIds.size} to review
+                  </span>
+                )}
+              </div>
+            </div>
+            <Progress value={progressPct} size="sm" />
+          </div>
+
+          {/* Central Serious Study Flashcard */}
+          <div
+            onClick={() => setIsRevealed(!isRevealed)}
+            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all p-8 sm:p-12 min-h-[340px] flex flex-col justify-between cursor-pointer select-none relative group"
           >
-            <option value="">Choose a document to study...</option>
-            {docs.map((d) => (<option key={d.id} value={d.id}>{d.title}</option>))}
-          </select>
-        </div>
+            {/* Top Card Controls */}
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
+                {isRevealed ? 'Answer' : 'Prompt / Concept'}
+              </span>
 
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Number of Cards</label>
-          <select 
-            value={count} 
-            onChange={(e) => setCount(Number(e.target.value))} 
-            className="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-3 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all outline-none"
-          >
-            {[5, 10, 15, 20].map((n) => (<option key={n} value={n}>{n} cards</option>))}
-          </select>
-        </div>
+              <div className="flex items-center gap-2">
+                {/* Bookmark Toggle */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleBookmark(currentCard);
+                  }}
+                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                    currentCard.is_bookmarked
+                      ? 'text-amber-500 bg-amber-500/10'
+                      : 'text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-[var(--color-surface-hover)]'
+                  }`}
+                  title={currentCard.is_bookmarked ? 'Bookmarked' : 'Bookmark card'}
+                >
+                  <Bookmark
+                    size={16}
+                    className={currentCard.is_bookmarked ? 'fill-current' : ''}
+                  />
+                </button>
+              </div>
+            </div>
 
-        <button 
-          onClick={handleGenerate} 
-          disabled={!docId || loading} 
-          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3.5 rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none transition-all"
-        >
-          {loading ? (
-            <span className="flex items-center gap-2 animate-pulse"><Sparkles size={18} /> Generating Flashcards...</span>
-          ) : (
-            <span className="flex items-center gap-2"><Sparkles size={18} /> Generate Flashcards</span>
+            {/* Central Typography Area */}
+            <div className="py-6 my-auto text-center space-y-4">
+              {!isRevealed ? (
+                <div className="space-y-2 animate-in fade-in duration-200">
+                  <p className="text-xl sm:text-2xl font-semibold text-[var(--color-text)] leading-relaxed max-w-lg mx-auto">
+                    {currentCard.front}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 animate-in fade-in duration-200">
+                  <p className="text-lg sm:text-xl text-[var(--color-text)] leading-relaxed max-w-lg mx-auto">
+                    {currentCard.back}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Hint / Flip Indicator */}
+            <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)] pt-4 border-t border-[var(--color-border)]">
+              {currentCard.hint ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowHint(!showHint);
+                  }}
+                  className="inline-flex items-center gap-1.5 text-xs text-[var(--color-primary)] hover:underline cursor-pointer font-medium"
+                >
+                  <Lightbulb size={13} />
+                  <span>{showHint ? `Hint: ${currentCard.hint}` : 'Show Hint'}</span>
+                </button>
+              ) : (
+                <span />
+              )}
+
+              <span className="flex items-center gap-1 text-[11px]">
+                {isRevealed ? <EyeOff size={13} /> : <Eye size={13} />}
+                <span>Click or Space to {isRevealed ? 'see prompt' : 'reveal answer'}</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Self-Assessment & Knowledge Retention Actions */}
+          {isRevealed && (
+            <div className="p-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200">
+              <span className="text-xs font-semibold text-[var(--color-text-muted)] hidden sm:inline">
+                How well did you know this?
+              </span>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <Button
+                  size="sm"
+                  variant={needsReview ? 'primary' : 'outline'}
+                  onClick={() => markNeedsReview(currentCard.id)}
+                  leftIcon={<RotateCcw size={13} />}
+                  className="flex-1 sm:flex-initial text-xs"
+                >
+                  Needs Practice
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant={isMastered ? 'primary' : 'secondary'}
+                  onClick={() => markMastered(currentCard.id)}
+                  leftIcon={<CheckCircle2 size={13} />}
+                  className="flex-1 sm:flex-initial text-xs"
+                >
+                  Mastered
+                </Button>
+              </div>
+            </div>
           )}
-        </button>
+
+          {/* Previous / Next Toolbar */}
+          <div className="flex items-center justify-between pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => advanceCard(-1)}
+              disabled={currentIndex === 0}
+              leftIcon={<ArrowLeft size={14} />}
+            >
+              Previous
+            </Button>
+
+            <div className="text-xs text-[var(--color-text-muted)] hidden sm:block">
+              Use <kbd className="px-1.5 py-0.5 rounded bg-[var(--color-surface-hover)] border border-[var(--color-border)] text-[10px]">Space</kbd> to flip, <kbd className="px-1.5 py-0.5 rounded bg-[var(--color-surface-hover)] border border-[var(--color-border)] text-[10px]">← / →</kbd> to navigate
+            </div>
+
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => advanceCard(1)}
+              disabled={currentIndex === totalCards - 1}
+              rightIcon={<ArrowRight size={14} />}
+            >
+              Next Card
+            </Button>
+          </div>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  // 2. GRID OVERVIEW VIEW: Full Deck Review
+  if (view === 'grid' && cards.length > 0) {
+    return (
+      <PageContainer
+        title={title}
+        description="Comprehensive card list for rapid scanning and reference."
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={() => setView('focus')}
+              leftIcon={<Maximize2 size={14} />}
+            >
+              Study Focus Mode
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setView('list')}>
+              All Decks
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {cards.map((card, idx) => (
+              <Card key={card.id} className="border-[var(--color-border)]">
+                <CardContent className="p-5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[var(--color-text-muted)] uppercase">
+                      Card {idx + 1}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => toggleBookmark(card)}
+                      className={`p-1 rounded cursor-pointer ${
+                        card.is_bookmarked
+                          ? 'text-amber-500'
+                          : 'text-[var(--color-text-muted)] hover:text-amber-500'
+                      }`}
+                    >
+                      <Bookmark size={15} className={card.is_bookmarked ? 'fill-current' : ''} />
+                    </button>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-semibold text-[var(--color-text-muted)] uppercase">
+                      Prompt
+                    </span>
+                    <p className="text-sm font-semibold text-[var(--color-text)]">{card.front}</p>
+                  </div>
+
+                  <div className="pt-2 border-t border-[var(--color-border)] space-y-1">
+                    <span className="text-[11px] font-semibold text-[var(--color-text-muted)] uppercase">
+                      Answer
+                    </span>
+                    <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">{card.back}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  // 3. LIST VIEW: Flashcard Sets Library
+  if (view === 'list') {
+    return (
+      <PageContainer
+        title="Flashcard Decks"
+        description="Active recall sets generated from your uploaded learning materials."
+        actions={
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={() => setView('create')}
+            leftIcon={<Plus size={14} />}
+          >
+            New Deck
+          </Button>
+        }
+      >
+        <div className="space-y-6">
+          {setsList.length === 0 ? (
+            <Card>
+              <CardContent className="py-16 text-center space-y-4">
+                <div className="w-12 h-12 rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center mx-auto">
+                  <Layers size={24} />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-base font-bold text-[var(--color-text)]">No flashcards created yet</h3>
+                  <p className="text-xs text-[var(--color-text-muted)] max-w-sm mx-auto">
+                    Generate an interactive active-recall deck from your uploaded study materials.
+                  </p>
+                </div>
+                <Button variant="primary" onClick={() => setView('create')}>
+                  Create First Deck
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {setsList.map((set) => (
+                <Card
+                  key={set.id}
+                  variant="interactive"
+                  onClick={() => openSet(set.id)}
+                  className="flex flex-col justify-between"
+                >
+                  <CardHeader>
+                    <div className="flex items-center justify-between mb-1">
+                      <Badge variant="primary" size="sm">
+                        {set.card_count} flashcards
+                      </Badge>
+                      <span className="text-xs text-[var(--color-text-muted)]">
+                        {new Date(set.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                    <CardTitle className="text-base font-bold line-clamp-1">{set.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0 flex items-center justify-between text-xs font-semibold text-[var(--color-primary)]">
+                    <span>Study Deck</span>
+                    <ArrowRight size={13} />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </PageContainer>
+    );
+  }
+
+  // 4. CREATE VIEW: Generate Deck
+  return (
+    <PageContainer
+      title="Flashcard Generator"
+      description="Synthesize key definitions, formulas, and concepts into an active-recall deck."
+      actions={
+        setsList.length > 0 ? (
+          <Button size="sm" variant="outline" onClick={() => setView('list')} leftIcon={<ChevronLeft size={14} />}>
+            My Decks ({setsList.length})
+          </Button>
+        ) : undefined
+      }
+    >
+      <div className="max-w-xl mx-auto space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Configure Study Deck</CardTitle>
+            <CardDescription>
+              Select source reading material and desired number of cards.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {/* Document Select */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] flex items-center gap-1.5">
+                <FileText size={13} className="text-[var(--color-primary)]" /> Source Document
+              </label>
+              <select
+                value={docId}
+                onChange={(e) => setDocId(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              >
+                <option value="">Choose document to synthesize...</option>
+                {docs.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Cards Count Select */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+                Number of Cards
+              </label>
+              <select
+                value={count}
+                onChange={(e) => setCount(Number(e.target.value))}
+                className="w-full px-3.5 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              >
+                <option value={5}>5 Cards (Focused review)</option>
+                <option value={10}>10 Cards (Standard)</option>
+                <option value={15}>15 Cards (Comprehensive)</option>
+                <option value={20}>20 Cards (Deep drill)</option>
+              </select>
+            </div>
+
+            {/* Action */}
+            <div className="pt-2">
+              <Button
+                variant="primary"
+                onClick={handleGenerate}
+                disabled={generating || !docId}
+                isLoading={generating}
+                className="w-full h-11 text-sm font-semibold"
+                leftIcon={!generating ? <Layers size={16} /> : undefined}
+              >
+                {generating ? 'Extracting Core Concepts...' : 'Generate Flashcards'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </PageContainer>
   );
 }
