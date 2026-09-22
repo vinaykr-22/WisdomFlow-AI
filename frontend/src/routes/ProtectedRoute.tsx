@@ -48,7 +48,7 @@ export default function ProtectedRoute() {
   ];
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-100 dark:selection:bg-indigo-900 selection:text-indigo-900 dark:selection:text-indigo-100 overflow-hidden">
+    <div className="flex h-screen bg-[#fcfbf9] dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans selection:bg-stone-900 selection:text-stone-100 overflow-hidden">
       {/* Modern, Structured Workflow Sidebar (Desktop Rail & Mobile Slide-Over) */}
       <Sidebar
         isCollapsed={isSidebarCollapsed}
@@ -78,7 +78,7 @@ export default function ProtectedRoute() {
 
         {/* Intentional Mobile Bottom Navigation Bar */}
         <nav
-          className="fixed bottom-0 left-0 right-0 z-30 h-14 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-around px-1 lg:hidden select-none safe-area-bottom"
+          className="fixed bottom-0 left-0 right-0 z-30 h-14 bg-[#fcfbf9] dark:bg-stone-900 border-t-[1.5px] border-stone-900 dark:border-stone-700 flex items-center justify-around px-1 lg:hidden select-none safe-area-bottom"
           aria-label="Mobile Navigation"
         >
           {mobileNavItems.map((item) => {
@@ -87,13 +87,13 @@ export default function ProtectedRoute() {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-medium transition-colors ${
+                className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-mono uppercase tracking-wider transition-colors ${
                   isActive
-                    ? 'text-indigo-600 dark:text-indigo-400 font-semibold'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                    ? 'text-stone-900 dark:text-stone-100 font-bold'
+                    : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
                 }`}
               >
-                <div className={`p-1 rounded-md transition-colors ${isActive ? 'bg-indigo-50 dark:bg-indigo-950/60' : ''}`}>
+                <div className={`p-1 rounded-[2px] transition-colors ${isActive ? 'bg-stone-200 dark:bg-stone-800 border border-stone-900 dark:border-stone-600' : ''}`}>
                   {item.icon}
                 </div>
                 <span className="truncate">{item.label}</span>
@@ -104,9 +104,9 @@ export default function ProtectedRoute() {
           <button
             type="button"
             onClick={() => setIsMobileSidebarOpen(true)}
-            className="flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors cursor-pointer"
+            className="flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-mono uppercase tracking-wider text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors cursor-pointer"
           >
-            <div className="p-1 rounded-md">
+            <div className="p-1 rounded-[2px]">
               <Menu size={18} />
             </div>
             <span>More</span>

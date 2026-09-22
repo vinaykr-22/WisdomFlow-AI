@@ -153,27 +153,28 @@ export default function ProfileModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/50 dark:bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-stone-900/60 dark:bg-black/80 backdrop-blur-xs animate-in fade-in duration-150">
+      
       {/* Modal Container */}
-      <div className="w-full max-w-3xl bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="w-full max-w-3xl bg-white dark:bg-stone-900 rounded-[2px] border-[2px] border-stone-900 dark:border-stone-700 shadow-[6px_6px_0px_#18181b] dark:shadow-[6px_6px_0px_#000] overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* Header Bar */}
-        <div className="h-14 px-6 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between flex-shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="h-14 px-5 sm:px-6 border-b-[1.5px] border-stone-900 dark:border-stone-700 flex items-center justify-between flex-shrink-0 bg-stone-100/60 dark:bg-stone-800/60">
           <div className="flex items-center gap-2.5">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Account Settings
-            </h2>
-            <span className="text-[11px] text-slate-400 dark:text-slate-500">
-              Manage your profile and study preferences
+            <span className="font-mono text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+              [ SETTINGS // WORKSPACE & PROFILE CONFIGURATION ]
+            </span>
+            <span className="font-mono text-[9px] font-bold px-1.5 py-0.5 border border-stone-900 dark:border-stone-600 bg-stone-200 dark:bg-stone-700 text-stone-900 dark:text-stone-200 hidden sm:inline-block">
+              CONFIG
             </span>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1.5 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700 active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer shadow-[1.5px_1.5px_0px_#18181b]"
             aria-label="Close settings"
           >
-            <X size={16} />
+            <X size={15} />
           </button>
         </div>
 
@@ -181,76 +182,76 @@ export default function ProfileModal({
         <div className="flex-1 flex flex-col sm:flex-row min-h-0 overflow-hidden">
           
           {/* Left Category Navigation Rail */}
-          <div className="w-full sm:w-56 p-2 sm:p-3 sm:border-r border-b sm:border-b-0 border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/30 flex sm:flex-col gap-1 flex-shrink-0 overflow-x-auto no-scrollbar">
+          <div className="w-full sm:w-56 p-2 sm:p-3 sm:border-r-[1.5px] border-b sm:border-b-0 border-stone-900 dark:border-stone-700 bg-stone-50 dark:bg-stone-950 flex sm:flex-col gap-1.5 flex-shrink-0 overflow-x-auto no-scrollbar font-mono text-xs">
             <button
               onClick={() => setActiveTab('profile')}
-              className={`flex-shrink-0 sm:w-full flex items-center gap-2 sm:gap-2.5 px-3 py-1.5 sm:py-2 rounded-lg text-xs font-medium transition-colors text-left cursor-pointer whitespace-nowrap ${
+              className={`flex-shrink-0 sm:w-full flex items-center gap-2 px-3 py-2 rounded-[2px] transition-all text-left cursor-pointer whitespace-nowrap uppercase font-bold tracking-wider ${
                 activeTab === 'profile'
-                  ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 font-semibold'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                  ? 'bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 shadow-[2px_2px_0px_#18181b]'
+                  : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100 border border-transparent'
               }`}
             >
-              <User size={15} className="flex-shrink-0" />
+              <User size={14} className="flex-shrink-0" />
               <span>General Profile</span>
             </button>
 
             <button
               onClick={() => setActiveTab('academic')}
-              className={`flex-shrink-0 sm:w-full flex items-center gap-2 sm:gap-2.5 px-3 py-1.5 sm:py-2 rounded-lg text-xs font-medium transition-colors text-left cursor-pointer whitespace-nowrap ${
+              className={`flex-shrink-0 sm:w-full flex items-center gap-2 px-3 py-2 rounded-[2px] transition-all text-left cursor-pointer whitespace-nowrap uppercase font-bold tracking-wider ${
                 activeTab === 'academic'
-                  ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 font-semibold'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                  ? 'bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 shadow-[2px_2px_0px_#18181b]'
+                  : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100 border border-transparent'
               }`}
             >
-              <GraduationCap size={15} className="flex-shrink-0" />
-              <span>Academic Details</span>
+              <GraduationCap size={14} className="flex-shrink-0" />
+              <span>Academic Context</span>
             </button>
 
             <button
               onClick={() => setActiveTab('security')}
-              className={`flex-shrink-0 sm:w-full flex items-center gap-2 sm:gap-2.5 px-3 py-1.5 sm:py-2 rounded-lg text-xs font-medium transition-colors text-left cursor-pointer whitespace-nowrap ${
+              className={`flex-shrink-0 sm:w-full flex items-center gap-2 px-3 py-2 rounded-[2px] transition-all text-left cursor-pointer whitespace-nowrap uppercase font-bold tracking-wider ${
                 activeTab === 'security'
-                  ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 font-semibold'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                  ? 'bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 shadow-[2px_2px_0px_#18181b]'
+                  : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100 border border-transparent'
               }`}
             >
-              <Lock size={15} className="flex-shrink-0" />
-              <span>Security & Password</span>
+              <Lock size={14} className="flex-shrink-0" />
+              <span>Security & Key</span>
             </button>
           </div>
 
           {/* Right Content Section */}
-          <div className="flex-1 p-6 overflow-y-auto min-h-0 space-y-6">
+          <div className="flex-1 p-5 sm:p-6 overflow-y-auto min-h-0 space-y-6">
             {loading ? (
-              <div className="h-64 flex flex-col items-center justify-center text-slate-400 text-xs gap-2">
-                <Loader2 size={24} className="animate-spin text-indigo-600 dark:text-indigo-400" />
-                <span>Loading account information...</span>
+              <div className="h-64 flex flex-col items-center justify-center text-stone-400 text-xs gap-2 font-mono">
+                <Loader2 size={22} className="animate-spin text-stone-900 dark:text-stone-100" />
+                <span>[ RETRIEVING PROFILE RECORD... ]</span>
               </div>
             ) : profile ? (
               <>
                 {/* 1. General Profile Tab */}
                 {activeTab === 'profile' && (
                   <div className="space-y-6 animate-in fade-in duration-150">
-                    <div>
-                      <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                        General Profile
+                    <div className="border-b border-stone-200 dark:border-stone-800 pb-3">
+                      <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">
+                        General Identity Profile
                       </h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Your basic account identity and learning workspace metadata.
+                      <p className="font-mono text-[11px] text-stone-500 mt-0.5">
+                        Account identity parameters and registered workspace credentials.
                       </p>
                     </div>
 
                     {/* Avatar and Basic Details */}
-                    <div className="flex items-center gap-4 p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+                    <div className="flex items-center gap-4 p-4 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-[#fcfbf9] dark:bg-stone-950 shadow-[2px_2px_0px_#18181b] dark:shadow-[2px_2px_0px_#000]">
                       <div className="relative flex-shrink-0">
                         {profile.profile_photo_url ? (
                           <img
                             src={getMediaUrl(profile.profile_photo_url)}
                             alt="Profile"
-                            className="w-16 h-16 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700"
+                            className="w-16 h-16 rounded-[2px] object-cover border-[1.5px] border-stone-900 dark:border-stone-700"
                           />
                         ) : (
-                          <div className="w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold text-xl flex items-center justify-center border-2 border-slate-200 dark:border-slate-700">
+                          <div className="w-16 h-16 rounded-[2px] bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-mono font-bold text-xl flex items-center justify-center border-[1.5px] border-stone-900 dark:border-stone-700">
                             {profile.full_name?.charAt(0).toUpperCase() || 'U'}
                           </div>
                         )}
@@ -258,13 +259,14 @@ export default function ProfileModal({
                         <button
                           onClick={() => fileInputRef.current?.click()}
                           disabled={uploadingPhoto}
-                          className="absolute bottom-0 right-0 p-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
+                          className="absolute -bottom-1 -right-1 p-1.5 bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 border border-stone-900 dark:border-stone-700 rounded-[2px] shadow-[1px_1px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px] transition-all disabled:opacity-50 cursor-pointer"
                           title="Upload new photo"
+                          aria-label="Upload profile photograph"
                         >
                           {uploadingPhoto ? (
-                            <Loader2 size={12} className="animate-spin" />
+                            <Loader2 size={11} className="animate-spin" />
                           ) : (
-                            <Camera size={12} />
+                            <Camera size={11} />
                           )}
                         </button>
                         <input
@@ -277,15 +279,15 @@ export default function ProfileModal({
                       </div>
 
                       <div className="space-y-1 min-w-0">
-                        <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
+                        <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 truncate">
                           {profile.full_name}
                         </h4>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                        <p className="font-mono text-xs text-stone-600 dark:text-stone-400 truncate">
                           {profile.email}
                         </p>
                         <div className="pt-0.5">
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-900/50 px-2 py-0.5 rounded">
-                            <ShieldCheck size={12} /> Active Account
+                          <span className="inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-800 dark:border-emerald-700 px-1.5 py-0.5 rounded-[2px]">
+                            <ShieldCheck size={11} /> [ STATUS // ACTIVE SESSION ]
                           </span>
                         </div>
                       </div>
@@ -294,42 +296,42 @@ export default function ProfileModal({
                     {/* Clean Learning Resource Summary */}
                     {stats && (
                       <div className="space-y-2">
-                        <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                          Workspace Resources
+                        <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-stone-500">
+                          [ WORKSPACE REPOSITORIES ]
                         </span>
                         <div className="grid grid-cols-3 gap-3">
-                          <div className="p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                            <div className="flex items-center justify-center text-slate-400 mb-1">
-                              <FileText size={16} />
+                          <div className="p-3 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 text-center shadow-[2px_2px_0px_#18181b]">
+                            <div className="flex items-center justify-center text-stone-400 mb-1">
+                              <FileText size={15} />
                             </div>
-                            <span className="block text-base font-bold text-slate-900 dark:text-slate-100">
+                            <span className="block font-mono text-base font-bold text-stone-900 dark:text-stone-100">
                               {stats.documents}
                             </span>
-                            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                            <span className="font-mono text-[10px] text-stone-500 uppercase">
                               Documents
                             </span>
                           </div>
 
-                          <div className="p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                            <div className="flex items-center justify-center text-slate-400 mb-1">
-                              <HelpCircle size={16} />
+                          <div className="p-3 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 text-center shadow-[2px_2px_0px_#18181b]">
+                            <div className="flex items-center justify-center text-stone-400 mb-1">
+                              <HelpCircle size={15} />
                             </div>
-                            <span className="block text-base font-bold text-slate-900 dark:text-slate-100">
+                            <span className="block font-mono text-base font-bold text-stone-900 dark:text-stone-100">
                               {stats.quizzes}
                             </span>
-                            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                            <span className="font-mono text-[10px] text-stone-500 uppercase">
                               Quizzes
                             </span>
                           </div>
 
-                          <div className="p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                            <div className="flex items-center justify-center text-slate-400 mb-1">
-                              <Layers size={16} />
+                          <div className="p-3 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 text-center shadow-[2px_2px_0px_#18181b]">
+                            <div className="flex items-center justify-center text-stone-400 mb-1">
+                              <Layers size={15} />
                             </div>
-                            <span className="block text-base font-bold text-slate-900 dark:text-slate-100">
+                            <span className="block font-mono text-base font-bold text-stone-900 dark:text-stone-100">
                               {stats.flashcard_sets}
                             </span>
-                            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                            <span className="font-mono text-[10px] text-stone-500 uppercase">
                               Decks
                             </span>
                           </div>
@@ -342,58 +344,58 @@ export default function ProfileModal({
                 {/* 2. Academic Details Tab */}
                 {activeTab === 'academic' && (
                   <div className="space-y-5 animate-in fade-in duration-150">
-                    <div>
-                      <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                        Academic Details
+                    <div className="border-b border-stone-200 dark:border-stone-800 pb-3">
+                      <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">
+                        Academic Context & Discipline
                       </h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Customize your educational context so AI tutors tailor responses to your level.
+                      <p className="font-mono text-[11px] text-stone-500 mt-0.5">
+                        Contextual parameters enabling the tutor workspace to calibrate study material depth.
                       </p>
                     </div>
 
                     <form onSubmit={handleSaveDetails} className="space-y-4">
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                          Institution / School
+                        <label className="block font-mono text-[11px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+                          Institution / Academic Affiliation
                         </label>
                         <input
                           type="text"
                           placeholder="e.g. Stanford University or MIT"
                           value={school}
                           onChange={(e) => setSchool(e.target.value)}
-                          className="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-hidden focus:border-indigo-600 dark:focus:border-indigo-500 focus:ring-1 focus:ring-indigo-600/30 dark:focus:ring-indigo-500/30 transition-colors"
+                          className="w-full h-10 px-3 font-mono text-xs bg-white dark:bg-stone-950 border-[1.5px] border-stone-900 dark:border-stone-700 rounded-[2px] text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:ring-0 focus:border-stone-900 dark:focus:border-stone-100 transition-colors"
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                          Field of Study / Major
+                        <label className="block font-mono text-[11px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+                          Field of Study / Academic Focus
                         </label>
                         <textarea
-                          placeholder="e.g. Computer Science student specializing in distributed systems and ML..."
+                          placeholder="e.g. Computer Science scholar specializing in distributed systems and systems architecture..."
                           value={bio}
                           onChange={(e) => setBio(e.target.value)}
                           rows={3}
-                          className="w-full p-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-hidden focus:border-indigo-600 dark:focus:border-indigo-500 focus:ring-1 focus:ring-indigo-600/30 dark:focus:ring-indigo-500/30 transition-colors resize-none"
+                          className="w-full p-3 font-mono text-xs bg-white dark:bg-stone-950 border-[1.5px] border-stone-900 dark:border-stone-700 rounded-[2px] text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:ring-0 focus:border-stone-900 dark:focus:border-stone-100 transition-colors resize-none"
                         />
                       </div>
 
                       <div className="flex items-center justify-between pt-2">
                         {detailsStatus === 'success' && (
-                          <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                            <CheckCircle2 size={14} /> Changes saved successfully
+                          <span className="font-mono text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                            <CheckCircle2 size={13} /> [ DISPATCH // CHANGES RECORDED ]
                           </span>
                         )}
                         <div className="ml-auto">
                           <button
                             type="submit"
                             disabled={detailsStatus === 'loading'}
-                            className="h-8 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium transition-colors disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+                            className="h-9 px-4 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 hover:bg-black dark:hover:bg-white font-mono text-xs uppercase font-bold tracking-wider shadow-[2px_2px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:opacity-50 transition-all flex items-center gap-1.5 cursor-pointer"
                           >
                             {detailsStatus === 'loading' ? (
                               <>
-                                <Loader2 size={13} className="animate-spin" />
-                                <span>Saving...</span>
+                                <Loader2 size={12} className="animate-spin" />
+                                <span>Recording...</span>
                               </>
                             ) : (
                               <span>Save Details</span>
@@ -408,56 +410,56 @@ export default function ProfileModal({
                 {/* 3. Security & Password Tab */}
                 {activeTab === 'security' && (
                   <div className="space-y-5 animate-in fade-in duration-150">
-                    <div>
-                      <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                        Security & Credentials
+                    <div className="border-b border-stone-200 dark:border-stone-800 pb-3">
+                      <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">
+                        Security & Access Key
                       </h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Manage your account authentication password.
+                      <p className="font-mono text-[11px] text-stone-500 mt-0.5">
+                        Manage your workspace authentication passkey and credential rotation.
                       </p>
                     </div>
 
                     <form onSubmit={handleChangePassword} className="space-y-4">
                       {passwordStatus === 'success' && (
-                        <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-xs flex items-center gap-2">
-                          <CheckCircle2 size={15} />
-                          <span>Password updated successfully.</span>
+                        <div className="p-3 rounded-[2px] bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-800 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200 text-xs flex items-center gap-2 font-mono">
+                          <CheckCircle2 size={14} className="flex-shrink-0" />
+                          <span>[ SUCCESS // KEY ROTATION COMPLETED ]</span>
                         </div>
                       )}
 
                       {passwordStatus === 'error' && (
-                        <div className="p-3 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2">
-                          <AlertCircle size={15} className="mt-0.5 flex-shrink-0" />
-                          <span>{errorMsg || 'Failed to update password.'}</span>
+                        <div className="p-3 rounded-[2px] bg-rose-50 dark:bg-rose-950/40 border border-rose-800 dark:border-rose-700 text-rose-900 dark:text-rose-200 text-xs flex items-start gap-2 font-mono">
+                          <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
+                          <span>[ ERROR ]: {errorMsg || 'Failed to rotate password key.'}</span>
                         </div>
                       )}
 
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                          Current Password
+                        <label className="block font-mono text-[11px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+                          Current Passkey
                         </label>
                         <input
                           type="password"
-                          placeholder="••••••••"
+                          placeholder="••••••••••••"
                           value={currentPassword}
                           onChange={(e) => setCurrentPassword(e.target.value)}
                           required
-                          className="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-hidden focus:border-indigo-600 dark:focus:border-indigo-500 focus:ring-1 focus:ring-indigo-600/30 dark:focus:ring-indigo-500/30 transition-colors"
+                          className="w-full h-10 px-3 font-mono text-xs bg-white dark:bg-stone-950 border-[1.5px] border-stone-900 dark:border-stone-700 rounded-[2px] text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:ring-0 focus:border-stone-900 dark:focus:border-stone-100 transition-colors"
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                          New Password
+                        <label className="block font-mono text-[11px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+                          Replacement Passkey (Min. 6 chars)
                         </label>
                         <input
                           type="password"
-                          placeholder="Minimum 6 characters"
+                          placeholder="••••••••••••"
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
                           required
                           minLength={6}
-                          className="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-hidden focus:border-indigo-600 dark:focus:border-indigo-500 focus:ring-1 focus:ring-indigo-600/30 dark:focus:ring-indigo-500/30 transition-colors"
+                          className="w-full h-10 px-3 font-mono text-xs bg-white dark:bg-stone-950 border-[1.5px] border-stone-900 dark:border-stone-700 rounded-[2px] text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:ring-0 focus:border-stone-900 dark:focus:border-stone-100 transition-colors"
                         />
                       </div>
 
@@ -467,15 +469,15 @@ export default function ProfileModal({
                           disabled={
                             passwordStatus === 'loading' || !currentPassword || !newPassword
                           }
-                          className="h-8 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium transition-colors disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+                          className="h-9 px-4 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 hover:bg-black dark:hover:bg-white font-mono text-xs uppercase font-bold tracking-wider shadow-[2px_2px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:opacity-50 transition-all flex items-center gap-1.5 cursor-pointer"
                         >
                           {passwordStatus === 'loading' ? (
                             <>
-                              <Loader2 size={13} className="animate-spin" />
-                              <span>Updating...</span>
+                              <Loader2 size={12} className="animate-spin" />
+                              <span>Rotating Key...</span>
                             </>
                           ) : (
-                            <span>Update Password</span>
+                            <span>Update Passkey</span>
                           )}
                         </button>
                       </div>
@@ -484,8 +486,8 @@ export default function ProfileModal({
                 )}
               </>
             ) : (
-              <div className="text-center text-xs text-slate-400 py-12">
-                Unable to load account information.
+              <div className="text-center font-mono text-xs text-stone-500 py-12">
+                [ UNABLE TO LOAD ACCOUNT RECORD ]
               </div>
             )}
           </div>

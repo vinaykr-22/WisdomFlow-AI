@@ -66,64 +66,76 @@ export default function Progress() {
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-8 w-48 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+      <div className="space-y-6 animate-pulse font-mono">
+        <div className="h-8 w-64 bg-stone-200 dark:bg-stone-800 rounded-[2px] border border-stone-300 dark:border-stone-700" />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-24 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+            <div key={i} className="h-28 bg-stone-200 dark:bg-stone-800 rounded-[2px] border-[1.5px] border-stone-300 dark:border-stone-700" />
           ))}
         </div>
-        <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+        <div className="h-64 bg-stone-200 dark:bg-stone-800 rounded-[2px] border-[1.5px] border-stone-300 dark:border-stone-700" />
       </div>
     );
   }
 
   const metrics = [
     {
+      code: 'STREAK',
       label: 'Learning Streak',
-      value: `${streak?.current_streak || 0} ${streak?.current_streak === 1 ? 'day' : 'days'}`,
-      subtext: `Best: ${streak?.longest_streak || 0} days`,
-      icon: <Flame size={18} className="text-amber-500" />,
+      value: `${streak?.current_streak || 0} ${streak?.current_streak === 1 ? 'DAY' : 'DAYS'}`,
+      subtext: `Best record: ${streak?.longest_streak || 0} days`,
+      icon: <Flame size={16} className="text-stone-900 dark:text-stone-100" />,
     },
     {
+      code: 'ACCURACY',
       label: 'Average Score',
       value: stats?.average_score ? `${stats.average_score}%` : '—',
       subtext: 'Across all quizzes taken',
-      icon: <GraduationCap size={18} className="text-indigo-600 dark:text-indigo-400" />,
+      icon: <GraduationCap size={16} className="text-stone-900 dark:text-stone-100" />,
     },
     {
+      code: 'ARCHIVE',
       label: 'Documents Studied',
       value: stats?.total_documents ?? 0,
-      subtext: 'Processed in library',
-      icon: <BookOpen size={18} className="text-slate-500" />,
+      subtext: 'Catalogued in library',
+      icon: <BookOpen size={16} className="text-stone-900 dark:text-stone-100" />,
     },
     {
+      code: 'TESTING',
       label: 'Quizzes Completed',
       value: stats?.total_quizzes ?? 0,
-      subtext: `${stats?.total_flashcards ?? 0} flashcards mastered`,
-      icon: <HelpCircle size={18} className="text-slate-500" />,
+      subtext: `${stats?.total_flashcards ?? 0} cards retained`,
+      icon: <HelpCircle size={16} className="text-stone-900 dark:text-stone-100" />,
     },
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-200">
+    <div className="space-y-6 animate-in fade-in duration-150">
       
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 pb-4 border-b border-slate-200/80 dark:border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b-[1.5px] border-stone-900 dark:border-stone-700">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-            Progress & History
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+              [ WORKSPACE // METRICS & HISTORICAL LEDGER ]
+            </span>
+            <span className="font-mono text-[9px] font-bold px-1.5 py-0.5 border border-stone-900 dark:border-stone-600 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-200">
+              TELEMETRY
+            </span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100 mt-1">
+            Learning Performance & Telemetry
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Monitor study consistency, assessment accuracy, and chronological learning logs.
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+            Evaluate retention consistency, examination outcomes, and chronological study dispatches.
           </p>
         </div>
 
         {streak?.today && (
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-600 dark:text-slate-300">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span>
-              Today: <strong className="font-semibold text-slate-900 dark:text-slate-100">{streak.today.documents_studied}</strong> docs · <strong className="font-semibold text-slate-900 dark:text-slate-100">{streak.today.quizzes_taken}</strong> quizzes
+          <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 text-xs text-stone-800 dark:text-stone-200 shadow-[2px_2px_0px_#18181b] dark:shadow-[2px_2px_0px_#000]">
+            <span className="w-2 h-2 rounded-[1px] bg-stone-900 dark:bg-stone-100 animate-pulse" />
+            <span className="font-mono text-[11px]">
+              TODAY // <strong className="font-bold">{streak.today.documents_studied}</strong> DOCS · <strong className="font-bold">{streak.today.quizzes_taken}</strong> TESTS
             </span>
           </div>
         )}
@@ -133,22 +145,25 @@ export default function Progress() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((m) => (
           <div
-            key={m.label}
-            className="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-2"
+            key={m.code}
+            className="p-4 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-[2px_2px_0px_#18181b] dark:shadow-[2px_2px_0px_#000] space-y-2"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                {m.label}
+            <div className="flex items-center justify-between font-mono">
+              <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">
+                [{m.code}]
               </span>
-              <div className="p-1.5 rounded-md bg-slate-100 dark:bg-slate-800">
+              <div className="p-1 rounded-[2px] border border-stone-900 dark:border-stone-700 bg-stone-100 dark:bg-stone-800">
                 {m.icon}
               </div>
             </div>
-            <div className="space-y-0.5">
-              <div className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            <div>
+              <div className="font-mono text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
                 {m.value}
               </div>
-              <p className="text-[11px] text-slate-400 dark:text-slate-500">
+              <p className="text-xs font-semibold text-stone-800 dark:text-stone-200 mt-0.5">
+                {m.label}
+              </p>
+              <p className="font-mono text-[10px] text-stone-500 dark:text-stone-400 mt-0.5">
                 {m.subtext}
               </p>
             </div>
@@ -156,50 +171,51 @@ export default function Progress() {
         ))}
       </div>
 
-      {/* Roadmap Completion Bar if active */}
+      {/* Active Roadmap Progress Blueprint */}
       {stats && stats.roadmap_progress_percent > 0 && (
-        <div className="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-xs">
+        <div className="p-4 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-[2px_2px_0px_#18181b] dark:shadow-[2px_2px_0px_#000] space-y-2">
+          <div className="flex items-center justify-between font-mono text-xs">
             <div className="flex items-center gap-2">
-              <Map size={15} className="text-indigo-600 dark:text-indigo-400" />
-              <span className="font-medium text-slate-800 dark:text-slate-200">
-                Active Roadmap Completion
+              <Map size={14} className="text-stone-900 dark:text-stone-100" />
+              <span className="font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+                [ BLUEPRINT // ACTIVE ROADMAP COMPLETION ]
               </span>
             </div>
-            <span className="font-semibold text-slate-900 dark:text-slate-100">
+            <span className="font-bold text-stone-900 dark:text-stone-100">
               {stats.roadmap_progress_percent}%
             </span>
           </div>
-          <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+          <div className="w-full h-3 bg-stone-100 dark:bg-stone-800 rounded-[2px] border border-stone-900 dark:border-stone-700 overflow-hidden p-[1px]">
             <div
-              className="h-full bg-indigo-600 dark:bg-indigo-500 rounded-full transition-all duration-500"
+              className="h-full bg-stone-900 dark:bg-stone-100 rounded-[1px] transition-all duration-500"
               style={{ width: `${stats.roadmap_progress_percent}%` }}
             />
           </div>
         </div>
       )}
 
-      {/* Structured Sections Grid */}
+      {/* Structured Sections: History + Document Mastery */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         
         {/* Chronological Learning History */}
-        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden">
-          <div className="p-4 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+        <div className="rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-[3px_3px_0px_#18181b] dark:shadow-[3px_3px_0px_#000] overflow-hidden">
+          <div className="p-3.5 border-b-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-100/60 dark:bg-stone-800/60 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Calendar size={15} className="text-slate-500" />
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Chronological Activity Log
+              <Calendar size={14} className="text-stone-900 dark:text-stone-100" />
+              <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+                [ DISPATCH // CHRONOLOGICAL ACTIVITY LOG ]
               </h2>
             </div>
-            <span className="text-[11px] text-slate-400 dark:text-slate-500">
-              Recent study milestones
+            <span className="font-mono text-[10px] text-stone-500">
+              RECENT 7 DAYS
             </span>
           </div>
 
-          <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
+          <div className="divide-y border-stone-200 dark:divide-stone-800">
             {(!stats?.recent_activity || stats.recent_activity.length === 0) ? (
-              <div className="p-8 text-center text-xs text-slate-400 dark:text-slate-500">
-                No recorded study activity yet. Review documents or take quizzes to log history.
+              <div className="p-8 text-center font-mono text-xs text-stone-500">
+                [ NO LOGGED DISPATCHES ]<br />
+                Process documents or take evaluations to record activity.
               </div>
             ) : (
               stats.recent_activity.slice(0, 7).map((item) => {
@@ -213,35 +229,35 @@ export default function Progress() {
                 return (
                   <div
                     key={item.date}
-                    className="p-3.5 flex items-center justify-between hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
+                    className="p-3 flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-800/40 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-semibold text-slate-600 dark:text-slate-300">
+                      <div className="w-8 h-8 rounded-[2px] border border-stone-900 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 flex items-center justify-center font-mono text-xs font-bold text-stone-900 dark:text-stone-100 shadow-[1px_1px_0px_#18181b]">
                         {dateObj.getDate()}
                       </div>
                       <div>
-                        <p className="text-xs font-medium text-slate-800 dark:text-slate-200">
+                        <p className="text-xs font-bold text-stone-900 dark:text-stone-100">
                           {formattedDate}
                         </p>
-                        <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                          Study session completed
+                        <p className="font-mono text-[10px] text-stone-500 uppercase">
+                          Study session logged
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs">
+                    <div className="flex items-center gap-1.5 font-mono text-[10px]">
                       {item.documents_studied > 0 && (
-                        <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-[11px]">
-                          {item.documents_studied} {item.documents_studied === 1 ? 'doc' : 'docs'}
+                        <span className="px-2 py-0.5 rounded-[2px] border border-stone-900 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-bold">
+                          {item.documents_studied} DOCS
                         </span>
                       )}
                       {item.quizzes_taken > 0 && (
-                        <span className="px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400 font-medium text-[11px] border border-indigo-100 dark:border-indigo-900/40">
-                          {item.quizzes_taken} {item.quizzes_taken === 1 ? 'quiz' : 'quizzes'}
+                        <span className="px-2 py-0.5 rounded-[2px] border border-stone-900 dark:border-stone-700 bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 font-bold">
+                          {item.quizzes_taken} TESTS
                         </span>
                       )}
                       {item.documents_studied === 0 && item.quizzes_taken === 0 && (
-                        <span className="text-[11px] text-slate-400">Activity logged</span>
+                        <span className="text-stone-400 uppercase">[RECORDED]</span>
                       )}
                     </div>
                   </div>
@@ -252,77 +268,65 @@ export default function Progress() {
         </div>
 
         {/* Per-Document Mastery Table */}
-        <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden">
-          <div className="p-4 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+        <div className="rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-[3px_3px_0px_#18181b] dark:shadow-[3px_3px_0px_#000] overflow-hidden">
+          <div className="p-3.5 border-b-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-100/60 dark:bg-stone-800/60 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Layers size={15} className="text-slate-500" />
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Document Mastery Breakdown
+              <Layers size={14} className="text-stone-900 dark:text-stone-100" />
+              <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+                [ EVALUATION // DOCUMENT MASTERY MATRIX ]
               </h2>
             </div>
             <Link
               to="/quizzes"
-              className="text-[11px] font-medium text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+              className="inline-flex items-center gap-1 font-mono text-[10px] font-bold uppercase text-stone-900 dark:text-stone-100 hover:underline"
             >
-              Take Quiz <ArrowUpRight size={12} />
+              <span>Take Quiz</span>
+              <ArrowUpRight size={11} />
             </Link>
           </div>
 
           {topics.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-400 dark:text-slate-500">
-              Complete quizzes linked to your documents to view mastery breakdown.
+            <div className="p-8 text-center font-mono text-xs text-stone-500">
+              [ NO EVALUATION DATA ]<br />
+              Complete quizzes linked to documents to build the mastery matrix.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-[11px] text-slate-400 uppercase tracking-wider">
-                    <th className="py-2.5 px-4 font-medium">Document</th>
-                    <th className="py-2.5 px-4 font-medium text-center">Quizzes</th>
-                    <th className="py-2.5 px-4 font-medium text-right">Mastery</th>
+                  <tr className="border-b-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/30 font-mono text-[10px] text-stone-500 uppercase tracking-wider">
+                    <th className="py-2 px-3.5 font-bold">Document</th>
+                    <th className="py-2 px-3.5 font-bold text-center">Tests</th>
+                    <th className="py-2 px-3.5 font-bold text-right">Accuracy</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
                   {topics.map((t) => (
                     <tr
                       key={t.document_id}
-                      className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
+                      className="hover:bg-stone-50 dark:hover:bg-stone-800/30 transition-colors"
                     >
-                      <td className="py-3 px-4 font-medium text-slate-800 dark:text-slate-200 max-w-[180px] truncate">
+                      <td className="py-2.5 px-3.5 font-bold text-stone-900 dark:text-stone-100 max-w-[170px] truncate">
                         {t.document_title}
                       </td>
-                      <td className="py-3 px-4 text-center text-slate-500 dark:text-slate-400">
+                      <td className="py-2.5 px-3.5 text-center font-mono text-xs text-stone-700 dark:text-stone-300">
                         {t.quizzes_taken}
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-2.5 px-3.5 text-right font-mono">
                         {t.average_score != null ? (
                           <div className="inline-flex items-center gap-2 justify-end">
-                            <div className="w-12 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                            <div className="w-14 h-2 bg-stone-100 dark:bg-stone-800 border border-stone-900 dark:border-stone-700 rounded-[1px] overflow-hidden p-[0.5px]">
                               <div
-                                className={`h-full rounded-full ${
-                                  t.average_score >= 80
-                                    ? 'bg-emerald-500'
-                                    : t.average_score >= 50
-                                    ? 'bg-amber-500'
-                                    : 'bg-rose-500'
-                                }`}
+                                className="h-full bg-stone-900 dark:bg-stone-100 rounded-[0.5px]"
                                 style={{ width: `${t.average_score}%` }}
                               />
                             </div>
-                            <span
-                              className={`font-semibold ${
-                                t.average_score >= 80
-                                  ? 'text-emerald-600 dark:text-emerald-400'
-                                  : t.average_score >= 50
-                                  ? 'text-amber-600 dark:text-amber-400'
-                                  : 'text-rose-600 dark:text-rose-400'
-                              }`}
-                            >
+                            <span className="font-bold text-stone-900 dark:text-stone-100">
                               {t.average_score}%
                             </span>
                           </div>
                         ) : (
-                          <span className="text-slate-400 text-[11px]">—</span>
+                          <span className="text-stone-400 text-[11px]">—</span>
                         )}
                       </td>
                     </tr>

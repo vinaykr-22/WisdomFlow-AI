@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import { useAuthStore } from '../stores/auth';
 import RadialVisualizer from './RadialVisualizer';
-import { X, MessageSquare, Mic, AlertCircle } from 'lucide-react';
+import { X, Mic, AlertCircle, Terminal, Volume2 } from 'lucide-react';
 
 type State = 'idle' | 'listening' | 'thinking' | 'speaking';
 
@@ -238,7 +238,7 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
       setStateSafe('listening');
       silenceTimerRef.current = requestAnimationFrame(checkSilence);
     } catch {
-      setMicError('Microphone permission denied. Please allow microphone access in browser settings.');
+      setMicError('Microphone permission denied. Verify hardware access in browser permissions.');
       wsRef.current = null;
       setStateSafe('idle');
     }
@@ -353,16 +353,16 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
     listeningTimeoutRef.current = window.setTimeout(stopSession, LISTENING_TIMEOUT_MS);
   }, [startListening, stopSession, setStateSafe, ensureWs, playNextInQueue]);
 
-  const stateLabel = () => {
+  const stateDescription = () => {
     switch (state) {
       case 'idle':
-        return 'Tap microphone to speak';
+        return '[ STANDBY // TAP ACOUSTIC DIAL TO TRANSMIT ]';
       case 'listening':
-        return 'Listening to your voice...';
+        return '[ RECORDING ACTIVE // SPEECH RMS DETECTED ]';
       case 'thinking':
-        return 'Analyzing and formulating response...';
+        return '[ INFERENCE PROCESSING // RETRIEVING CONTEXT ]';
       case 'speaking':
-        return 'AI Tutor is speaking...';
+        return '[ AUDIO BROADCAST // SYNTHESIZING PHONEMES ]';
     }
   };
 
@@ -376,36 +376,41 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
   };
 
   return (
-    <div className="w-full h-[calc(100vh-8rem)] min-h-[500px] bg-white dark:bg-slate-900 rounded-xl shadow-xs flex flex-col overflow-hidden border border-slate-200/80 dark:border-slate-800">
+    <div className="w-full h-[calc(100vh-8rem)] min-h-[520px] bg-white dark:bg-stone-900 rounded-[2px] shadow-[3px_3px_0px_#18181b] dark:shadow-[3px_3px_0px_#0c0a09] flex flex-col overflow-hidden border-[1.5px] border-stone-900 dark:border-stone-700">
       
       {/* Top Utility Header */}
-      <div className="h-14 px-5 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50 flex-shrink-0">
+      <div className="h-14 px-4 sm:px-6 border-b-[1.5px] border-stone-900 dark:border-stone-700 flex items-center justify-between bg-stone-100/60 dark:bg-stone-800/60 flex-shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900/40">
-            <Mic size={15} />
+          <div className="w-8 h-8 rounded-[2px] bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 flex items-center justify-center border border-stone-900 dark:border-stone-700 shadow-[1.5px_1.5px_0px_#18181b]">
+            <Mic size={16} />
           </div>
           <div>
-            <h2 className="text-xs font-semibold text-slate-900 dark:text-slate-100">
-              Interactive Voice Tutor
-            </h2>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500">
-              Conversational study session with real-time speech
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+                [ ACOUSTIC CONSOLE // VOICE TUTOR ]
+              </span>
+              <span className="font-mono text-[9px] px-1.5 py-0.2 rounded-[2px] border border-stone-900 dark:border-stone-600 bg-stone-200 dark:bg-stone-700 text-stone-900 dark:text-stone-100 font-bold hidden sm:inline-block">
+                LIVE DUPLEX
+              </span>
+            </div>
+            <p className="font-mono text-[10px] text-stone-500 uppercase tracking-tight">
+              Real-time speech dialogue & contextual audio synthesis
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           {/* Document Context Selector */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs">
-            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase">
-              Topic:
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-white dark:bg-stone-950 border-[1.5px] border-stone-900 dark:border-stone-700 shadow-[1.5px_1.5px_0px_#18181b] text-xs">
+            <span className="font-mono text-[10px] font-bold text-stone-500 uppercase tracking-wider">
+              TOPIC:
             </span>
             <select
-              className="bg-transparent text-xs font-medium text-slate-700 dark:text-slate-200 outline-none max-w-[140px] sm:max-w-[200px] truncate cursor-pointer"
+              className="bg-transparent font-mono text-xs font-bold text-stone-900 dark:text-stone-100 outline-none max-w-[130px] sm:max-w-[200px] truncate cursor-pointer"
               value={docId}
               onChange={(e) => setDocId(e.target.value)}
             >
-              <option value="">General Knowledge</option>
+              <option value="">[ GENERAL KNOWLEDGE ]</option>
               {docs.map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.title}
@@ -416,82 +421,138 @@ export default function VoiceTutor({ onClose }: VoiceTutorProps = {}) {
 
           <button
             onClick={handleClose}
-            className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors cursor-pointer"
+            className="p-1.5 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700 active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer shadow-[1.5px_1.5px_0px_#18181b]"
             title="Close voice tutor"
+            aria-label="Close acoustic console"
           >
-            <X size={16} />
+            <X size={15} />
           </button>
         </div>
       </div>
 
       {micError && (
-        <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border-b border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
-          <AlertCircle size={15} />
-          <span>{micError}</span>
+        <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border-b-[1.5px] border-stone-900 dark:border-stone-700 text-rose-900 dark:text-rose-200 text-xs flex items-center gap-2 font-mono">
+          <AlertCircle size={15} className="flex-shrink-0 text-rose-700 dark:text-rose-400" />
+          <span>[ HARDWARE NOTICE ]: {micError}</span>
         </div>
       )}
 
-      {/* Main Workspace: Visualizer + Live Transcript */}
+      {/* Main Workspace: Oscilloscope Stage + Transcript Ledger */}
       <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
         
         {/* Interaction Stage */}
-        <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-50/40 dark:bg-slate-900/20 relative min-h-0">
-          <div className="flex-1 w-full flex items-center justify-center">
+        <div className="flex-1 flex flex-col items-center justify-between p-4 sm:p-6 bg-[#fcfbf9] dark:bg-stone-950 blueprint-grid relative min-h-0 overflow-y-auto">
+          
+          {/* Top Stage Telemetry Banner */}
+          <div className="w-full flex items-center justify-between font-mono text-[9px] uppercase tracking-wider text-stone-500 border-b border-stone-200 dark:border-stone-800 pb-2">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-[1px] bg-stone-900 dark:bg-stone-100" />
+              <span>TELEMETRY // CODEC: OPUS · FFT: 2048 · SAMPLE: 16KHZ</span>
+            </div>
+            <div className="hidden sm:flex items-center gap-3">
+              <span>LATENCY: &lt;180MS</span>
+              <span>BUFFER: STREAMING</span>
+            </div>
+          </div>
+
+          {/* Central Acoustic Radar Visualizer */}
+          <div className="flex-1 w-full flex items-center justify-center my-2">
             <RadialVisualizer state={state} onClick={handleMicClick} />
           </div>
 
-          <div className="mt-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-xs">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                state === 'idle'
-                  ? 'bg-slate-400'
-                  : state === 'listening'
-                  ? 'bg-rose-500 animate-pulse'
-                  : state === 'thinking'
-                  ? 'bg-amber-500 animate-pulse'
-                  : 'bg-emerald-500 animate-pulse'
-              }`}
-            />
-            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-              {stateLabel()}
-            </span>
+          {/* Stage Readout & VU Level Ticker */}
+          <div className="flex flex-col items-center gap-2.5 w-full max-w-md">
+            
+            {/* High-Contrast Monospace State Capsule */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[2px] bg-white dark:bg-stone-900 border-[1.5px] border-stone-900 dark:border-stone-700 shadow-[2px_2px_0px_#18181b] dark:shadow-[2px_2px_0px_#000]">
+              <span
+                className={`w-2 h-2 rounded-[1px] ${
+                  state === 'idle'
+                    ? 'bg-stone-400'
+                    : state === 'listening'
+                    ? 'bg-rose-600 animate-pulse'
+                    : state === 'thinking'
+                    ? 'bg-amber-500 animate-pulse'
+                    : 'bg-emerald-600 animate-pulse'
+                }`}
+              />
+              <span className="font-mono text-[11px] font-bold tracking-wider text-stone-900 dark:text-stone-100">
+                {stateDescription()}
+              </span>
+            </div>
+
+            {/* Graphic Oscilloscope VU Meter */}
+            <div className="flex items-center gap-4 font-mono text-[9px] text-stone-500 uppercase tracking-widest pt-1">
+              <span>
+                SIG-L:{' '}
+                <span className="font-bold text-stone-800 dark:text-stone-200">
+                  {state === 'listening' || state === 'speaking' ? '■■■■■■■□□□' : '■■□□□□□□□□'}
+                </span>{' '}
+                {state === 'idle' ? '-48dB' : '-12dB'}
+              </span>
+              <span>
+                SIG-R:{' '}
+                <span className="font-bold text-stone-800 dark:text-stone-200">
+                  {state === 'listening' || state === 'speaking' ? '■■■■■■□□□□' : '■■□□□□□□□□'}
+                </span>{' '}
+                {state === 'idle' ? '-52dB' : '-16dB'}
+              </span>
+            </div>
+
           </div>
         </div>
 
-        {/* Live Transcript Panel */}
-        <div className="w-full lg:w-80 h-48 sm:h-64 lg:h-full border-t lg:border-t-0 lg:border-l border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col min-h-0 flex-shrink-0">
-          <div className="p-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
-            <MessageSquare size={14} className="text-indigo-600 dark:text-indigo-400" />
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Session Transcript
-            </h3>
+        {/* Live Transcript Panel (Academic Ledger) */}
+        <div className="w-full lg:w-96 h-56 sm:h-72 lg:h-full border-t-[1.5px] lg:border-t-0 lg:border-l-[1.5px] border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 flex flex-col min-h-0 flex-shrink-0">
+          
+          <div className="p-3 border-b-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-100/50 dark:bg-stone-800/50 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Terminal size={14} className="text-stone-900 dark:text-stone-100" />
+              <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+                SESSION LEDGER
+              </h3>
+            </div>
+            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 border border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-300">
+              [{messages.length.toString().padStart(2, '0')} DISPATCHES]
+            </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0 text-xs">
+          <div className="flex-1 overflow-y-auto p-3.5 space-y-3 min-h-0 text-xs font-sans">
             {messages.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500 text-center px-4">
-                Tap the microphone and ask a question. Spoken dialogue will be transcribed here.
+              <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-2">
+                <div className="w-10 h-10 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-stone-500 shadow-[2px_2px_0px_#18181b]">
+                  <Volume2 size={18} />
+                </div>
+                <div className="font-mono text-xs font-bold uppercase text-stone-800 dark:text-stone-200">
+                  [ READY FOR SPOKEN INQUIRY ]
+                </div>
+                <p className="font-mono text-[11px] text-stone-500 max-w-[220px] leading-relaxed">
+                  Tap the central dial or speak into microphone. Dialogue will be catalogued in this ledger.
+                </p>
               </div>
             ) : (
               messages.map((m, i) => (
                 <div
                   key={i}
-                  className={`p-3 rounded-lg leading-relaxed ${
+                  className={`p-3 rounded-[2px] border-[1.5px] border-stone-900 dark:border-stone-700 shadow-[2px_2px_0px_#18181b] dark:shadow-[2px_2px_0px_#000] leading-relaxed ${
                     m.role === 'user'
-                      ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-950 dark:text-indigo-200 border border-indigo-100 dark:border-indigo-900/40 ml-4'
-                      : 'bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/60 mr-4'
+                      ? 'bg-white dark:bg-stone-950 text-stone-900 dark:text-stone-100 ml-3'
+                      : 'bg-stone-50 dark:bg-stone-800/90 text-stone-900 dark:text-stone-100 mr-3'
                   }`}
                 >
-                  <span
-                    className={`block text-[10px] font-semibold uppercase tracking-wider mb-1 ${
-                      m.role === 'user'
-                        ? 'text-indigo-600 dark:text-indigo-400'
-                        : 'text-slate-400 dark:text-slate-500'
-                    }`}
-                  >
-                    {m.role === 'user' ? 'You' : 'Voice Tutor'}
-                  </span>
-                  <p>{m.content}</p>
+                  <div className="flex items-center justify-between font-mono text-[9px] font-bold uppercase tracking-wider mb-1.5 pb-1 border-b border-stone-200 dark:border-stone-800">
+                    <span
+                      className={
+                        m.role === 'user'
+                          ? 'text-stone-900 dark:text-stone-100'
+                          : 'text-stone-600 dark:text-stone-300'
+                      }
+                    >
+                      {m.role === 'user' ? '[ STUDENT // INQUIRY ]' : '[ TUTOR // SYNTHESIZED DISPATCH ]'}
+                    </span>
+                    <span className="text-stone-400">#{i + 1}</span>
+                  </div>
+                  <p className="text-xs leading-normal font-sans">{m.content}</p>
                 </div>
               ))
             )}
