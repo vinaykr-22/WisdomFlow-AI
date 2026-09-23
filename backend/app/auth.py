@@ -159,28 +159,41 @@ async def change_password(
 
 @router.post("/forgot-password")
 async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
-    body.email = body.email.lower().strip()
-    result = await db.execute(select(User).where(User.email == body.email))
-    user = result.scalar_one_or_none()
+    try:
+        body.email = body.email.lower().strip()
+        result = await db.execute(select(User).where(User.email == body.email))
+        user = result.scalar_one_or_none()
 
-    if not user:
-        # Return success anyway to prevent email enumeration
+        if not user:
+            # Return success anyway to prevent email enumeration
+            return {"message": "If that email is registered, a verification code has been sent."}
+
+        # Generate a 6-digit numeric code
+        import random
+        code = f"{random.randint(100000, 999999)}"
+
+        # Store hashed code with 10-minute expiry
+        user.reset_password_token = bcrypt.hashpw(code.encode(), bcrypt.gensalt()).decode()
+        user.reset_password_expires = datetime.now(timezone.utc) + timedelta(minutes=10)
+        await db.commit()
+
+        # Send email (safely caught so email server errors never crash the HTTP response)
+        try:
+            from app.email import send_reset_code_email
+            send_reset_code_email(user.email, code, user.full_name or "Student")
+        except Exception as email_err:
+            print(f"[AUTH ERROR] Failed to dispatch email: {email_err}")
+
         return {"message": "If that email is registered, a verification code has been sent."}
+    except Exception as e:
+        print(f"[AUTH ERROR] /forgot-password failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process password reset request: {str(e)}"
+        )
 
-    # Generate a 6-digit numeric code
-    import random
-    code = f"{random.randint(100000, 999999)}"
-
-    # Store hashed code with 10-minute expiry
-    user.reset_password_token = bcrypt.hashpw(code.encode(), bcrypt.gensalt()).decode()
-    user.reset_password_expires = datetime.now(timezone.utc) + timedelta(minutes=10)
-    await db.commit()
-
-    # Send email via Resend
-    from app.email import send_reset_code_email
-    send_reset_code_email(user.email, code, user.full_name)
-
-    return {"message": "If that email is registered, a verification code has been sent."}
 
 
 @router.post("/verify-reset-code")

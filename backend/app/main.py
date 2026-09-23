@@ -55,6 +55,18 @@ async def _reindex_stale_docs():
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Ensure password reset columns exist in existing users table
+        try:
+            from sqlalchemy import text
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_token VARCHAR(255);"))
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_expires TIMESTAMPTZ;"))
+        except Exception as e:
+            try:
+                from sqlalchemy import text
+                await conn.execute(text("ALTER TABLE users ADD COLUMN reset_password_token VARCHAR(255);"))
+                await conn.execute(text("ALTER TABLE users ADD COLUMN reset_password_expires TIMESTAMP;"))
+            except Exception:
+                pass
     asyncio.create_task(_reindex_stale_docs())
     yield
     await engine.dispose()
@@ -62,10 +74,18 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="WisdomFlow AI", version="0.1.0", lifespan=lifespan)
 
+cors_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:8000",
+    "https://wisdomflow-ai.vercel.app",
+    "https://wisdomflow-ai.vercel.app/",
+] + settings.cors_origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:8000", "https://wisdomflow-ai.vercel.app"],
-    allow_origin_regex=r"chrome-extension://.*",
+    allow_origins=list(set(cors_origins)),
+    allow_origin_regex=r"https://.*\.vercel\.app|chrome-extension://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
