@@ -15,6 +15,15 @@ class Settings(BaseSettings):
     stt_model: str = "tiny"
     tts_voice: str = "en-US-AvaNeural"
 
+    # ── Email settings ──
+    smtp_email: str = "wisdomflowai@gmail.com"
+    smtp_login: str = ""
+    smtp_password: str = ""
+    smtp_server: str = "smtp.gmail.com"
+    smtp_port: int = 465
+    resend_api_key: str = ""
+    frontend_url: str = "http://localhost:5173"
+
     # ── Deployment settings ──
     allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8000"
     ollama_base_url: str = "http://localhost:11434/v1"

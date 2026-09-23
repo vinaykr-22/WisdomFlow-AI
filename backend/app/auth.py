@@ -50,9 +50,14 @@ class ForgotPasswordRequest(BaseModel):
     email: EmailStr
 
 
+class VerifyResetCodeRequest(BaseModel):
+    email: EmailStr
+    code: str
+
+
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
-    token: str
+    code: str
     new_password: str
 
 
@@ -157,22 +162,45 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
     body.email = body.email.lower().strip()
     result = await db.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
-    
-    if user:
-        reset_token = secrets.token_urlsafe(32)
-        user.reset_password_token = reset_token
-        user.reset_password_expires = datetime.now(timezone.utc) + timedelta(hours=1)
-        await db.commit()
-        
-        # Print to console for development testing
-        print(f"==== PASSWORD RESET LINK ====")
-        print(f"To reset your password, visit:")
-        # Ideally, we get frontend URL from config
-        print(f"http://localhost:5173/reset-password?token={reset_token}&email={user.email}")
-        print(f"=============================")
 
-    # Always return success to prevent email enumeration
-    return {"message": "If that email is registered, you will receive a password reset link."}
+    if not user:
+        # Return success anyway to prevent email enumeration
+        return {"message": "If that email is registered, a verification code has been sent."}
+
+    # Generate a 6-digit numeric code
+    import random
+    code = f"{random.randint(100000, 999999)}"
+
+    # Store hashed code with 10-minute expiry
+    user.reset_password_token = bcrypt.hashpw(code.encode(), bcrypt.gensalt()).decode()
+    user.reset_password_expires = datetime.now(timezone.utc) + timedelta(minutes=10)
+    await db.commit()
+
+    # Send email via Resend
+    from app.email import send_reset_code_email
+    send_reset_code_email(user.email, code, user.full_name)
+
+    return {"message": "If that email is registered, a verification code has been sent."}
+
+
+@router.post("/verify-reset-code")
+async def verify_reset_code(body: VerifyResetCodeRequest, db: AsyncSession = Depends(get_db)):
+    body.email = body.email.lower().strip()
+    result = await db.execute(
+        select(User).where(
+            User.email == body.email,
+            User.reset_password_expires > datetime.now(timezone.utc)
+        )
+    )
+    user = result.scalar_one_or_none()
+
+    if not user or not user.reset_password_token:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired verification code")
+
+    if not bcrypt.checkpw(body.code.encode(), user.reset_password_token.encode()):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired verification code")
+
+    return {"message": "Code verified successfully"}
 
 
 @router.post("/reset-password")
@@ -181,43 +209,23 @@ async def reset_password(body: ResetPasswordRequest, db: AsyncSession = Depends(
     result = await db.execute(
         select(User).where(
             User.email == body.email,
-            User.reset_password_token == body.token,
             User.reset_password_expires > datetime.now(timezone.utc)
         )
     )
     user = result.scalar_one_or_none()
-    
-    if not user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired reset token")
-        
+
+    if not user or not user.reset_password_token:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired verification code")
+
+    if not bcrypt.checkpw(body.code.encode(), user.reset_password_token.encode()):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired verification code")
+
     user.hashed_password = bcrypt.hashpw(body.new_password.encode(), bcrypt.gensalt()).decode()
     user.reset_password_token = None
     user.reset_password_expires = None
     await db.commit()
-    
-    return {"message": "Password has been successfully reset"}
-
-
-class DirectResetPasswordRequest(BaseModel):
-    email: EmailStr
-    new_password: str
-
-
-@router.post("/direct-reset-password")
-async def direct_reset_password(body: DirectResetPasswordRequest, db: AsyncSession = Depends(get_db)):
-    """DEV/TEST ONLY: Reset password by email without token verification."""
-    body.email = body.email.lower().strip()
-    result = await db.execute(select(User).where(User.email == body.email))
-    user = result.scalar_one_or_none()
-
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No account found with that email address")
-
-    user.hashed_password = bcrypt.hashpw(body.new_password.encode(), bcrypt.gensalt()).decode()
-    await db.commit()
 
     return {"message": "Password has been successfully reset"}
-
 
 
 @router.put("/me", response_model=UserResponse)

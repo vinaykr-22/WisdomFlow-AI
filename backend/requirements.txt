@@ -21,3 +21,4 @@ soundfile
 asyncpg
 gunicorn
 psycopg2-binary
+resend
