@@ -3,7 +3,7 @@ import secrets
 
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, BackgroundTasks
 from jose import jwt
 import bcrypt
 import shutil
@@ -92,7 +92,11 @@ def _create_refresh_token(sub: str) -> str:
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
+async def register(
+    body: RegisterRequest, 
+    background_tasks: BackgroundTasks, 
+    db: AsyncSession = Depends(get_db)
+):
     body.email = body.email.lower().strip()
     result = await db.execute(select(User).where(User.email == body.email))
     if result.scalar_one_or_none():
@@ -106,6 +110,10 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
     db.add(user)
     await db.commit()
     await db.refresh(user)
+
+    # Queue welcome email to run asynchronously without delaying the signup response
+    from app.email import send_welcome_email
+    background_tasks.add_task(send_welcome_email, user.email, user.full_name or "Student")
 
     return TokenResponse(
         access_token=_create_access_token(str(user.id)),
