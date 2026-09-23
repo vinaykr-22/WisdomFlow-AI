@@ -97,28 +97,45 @@ async def register(
     background_tasks: BackgroundTasks, 
     db: AsyncSession = Depends(get_db)
 ):
-    body.email = body.email.lower().strip()
-    result = await db.execute(select(User).where(User.email == body.email))
-    if result.scalar_one_or_none():
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
+    try:
+        body.email = body.email.lower().strip()
+        result = await db.execute(select(User).where(User.email == body.email))
+        if result.scalar_one_or_none():
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email is already registered. Please sign in.")
 
-    user = User(
-        email=body.email,
-        hashed_password=bcrypt.hashpw(body.password.encode(), bcrypt.gensalt()).decode(),
-        full_name=body.full_name,
-    )
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
+        if len(body.password.encode('utf-8')) > 72:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password cannot exceed 72 characters.")
 
-    # Queue welcome email to run asynchronously without delaying the signup response
-    from app.email import send_welcome_email
-    background_tasks.add_task(send_welcome_email, user.email, user.full_name or "Student")
+        user = User(
+            email=body.email,
+            hashed_password=bcrypt.hashpw(body.password.encode(), bcrypt.gensalt()).decode(),
+            full_name=body.full_name.strip(),
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
 
-    return TokenResponse(
-        access_token=_create_access_token(str(user.id)),
-        refresh_token=_create_refresh_token(str(user.id)),
-    )
+        # Queue welcome email to run asynchronously without delaying the signup response
+        try:
+            from app.email import send_welcome_email
+            background_tasks.add_task(send_welcome_email, user.email, user.full_name or "Student")
+        except Exception as email_err:
+            print(f"[AUTH WARNING] Failed to queue welcome email: {email_err}")
+
+        return TokenResponse(
+            access_token=_create_access_token(str(user.id)),
+            refresh_token=_create_refresh_token(str(user.id)),
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[REGISTER ERROR] {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Registration failed: {str(e)}"
+        )
 
 
 @router.post("/login")

@@ -41,8 +41,9 @@ export default function Register() {
       });
       setTokens(data.access_token, data.refresh_token);
       navigate('/dashboard');
-    } catch {
-      setError('Registration failed. This email may already have an active profile.');
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || 'Registration failed. This email may already have an active profile.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
