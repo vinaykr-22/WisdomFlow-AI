@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     smtp_server: str = "smtp.gmail.com"
     smtp_port: int = 465
     resend_api_key: str = ""
-    frontend_url: str = "http://localhost:5173"
+    frontend_url: str = "https://wisdomflow-ai.vercel.app"
 
     # ── Deployment settings ──
     allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8000"

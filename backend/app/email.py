@@ -149,7 +149,9 @@ def send_welcome_email(to_email: str, full_name: str) -> bool:
     Send an onboarding welcome email to newly registered users in WisdomFlow's editorial sketch style.
     """
     subject = f"Welcome to WisdomFlow AI, {full_name} — System Initialized"
-    frontend_url = settings.frontend_url.rstrip("/")
+    frontend_url = (settings.frontend_url or "https://wisdomflow-ai.vercel.app").rstrip("/")
+    if "localhost" in frontend_url:
+        frontend_url = "https://wisdomflow-ai.vercel.app"
 
     html_body = f"""
     <!DOCTYPE html>
