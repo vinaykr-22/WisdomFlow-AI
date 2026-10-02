@@ -53,20 +53,32 @@ async def _reindex_stale_docs():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-        # Ensure password reset columns exist in existing users table
+    # Retry database connection on startup to handle cloud DB cold-starts or transient DNS delays
+    for attempt in range(1, 6):
         try:
-            from sqlalchemy import text
-            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_token VARCHAR(255);"))
-            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_expires TIMESTAMPTZ;"))
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+                # Ensure password reset columns exist in existing users table
+                try:
+                    from sqlalchemy import text
+                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_token VARCHAR(255);"))
+                    await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_expires TIMESTAMPTZ;"))
+                except Exception:
+                    try:
+                        from sqlalchemy import text
+                        await conn.execute(text("ALTER TABLE users ADD COLUMN reset_password_token VARCHAR(255);"))
+                        await conn.execute(text("ALTER TABLE users ADD COLUMN reset_password_expires TIMESTAMP;"))
+                    except Exception:
+                        pass
+            break
         except Exception as e:
-            try:
-                from sqlalchemy import text
-                await conn.execute(text("ALTER TABLE users ADD COLUMN reset_password_token VARCHAR(255);"))
-                await conn.execute(text("ALTER TABLE users ADD COLUMN reset_password_expires TIMESTAMP;"))
-            except Exception:
-                pass
+            if attempt < 5:
+                print(f"[Database] Connection attempt {attempt}/5 failed ({e}). Retrying in 2 seconds...")
+                await asyncio.sleep(2)
+            else:
+                print(f"[Database] Connection failed after 5 attempts: {e}")
+                raise e
+
     asyncio.create_task(_reindex_stale_docs())
     yield
     await engine.dispose()
